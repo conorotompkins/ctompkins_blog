@@ -51,7 +51,7 @@ http://rprogramming.net/set-working-directory-in-r/
 
 Then, read the data into R
 ```{r read data into r}
-df <- read_csv("archive-police-blotter.csv")
+df <- read_csv("https://raw.githubusercontent.com/conorotompkins/pgh-crime/master/archive-police-blotter.csv")
 ```
 readr::read_csv tells us how it interpreted the column classes, and alerted us that it was unable to load 6 rows from the data
 

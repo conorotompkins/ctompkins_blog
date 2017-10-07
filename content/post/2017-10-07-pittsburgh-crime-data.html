@@ -161,7 +161,7 @@ $(document).ready(function () {
 <p>Set your working directory</p>
 <p><a href="http://rprogramming.net/set-working-directory-in-r/" class="uri">http://rprogramming.net/set-working-directory-in-r/</a></p>
 <p>Then, read the data into R</p>
-<pre class="r"><code>df &lt;- read_csv(&quot;archive-police-blotter.csv&quot;)</code></pre>
+<pre class="r"><code>df &lt;- read_csv(&quot;https://raw.githubusercontent.com/conorotompkins/pgh-crime/master/archive-police-blotter.csv&quot;)</code></pre>
 <pre><code>## Parsed with column specification:
 ## cols(
 ##   PK = col_integer(),
@@ -181,8 +181,8 @@ $(document).ready(function () {
 <pre><code>## Warning in rbind(names(probs), probs_f): number of columns of result is not
 ## a multiple of vector length (arg 1)</code></pre>
 <pre><code>## Warning: 6 parsing failures.
-## row # A tibble: 5 x 5 col      row   col               expected  actual                         file expected    &lt;int&gt; &lt;chr&gt;                  &lt;chr&gt;   &lt;chr&gt;                        &lt;chr&gt; actual 1  26010   CCR no trailing characters  .19743 'archive-police-blotter.csv' file 2  47848   CCR no trailing characters  -78692 'archive-police-blotter.csv' row 3  96952   CCR no trailing characters  -46945 'archive-police-blotter.csv' col 4 233211   CCR no trailing characters   89837 'archive-police-blotter.csv' expected 5 307276   CCR no trailing characters  024874 'archive-police-blotter.csv'
-## ... ................. ... .......................................................................... ........ .......................................................................... ...... .......................................................................... .... .......................................................................... ... .......................................................................... ... .......................................................................... ........ ..........................................................................
+## row # A tibble: 5 x 5 col      row   col               expected  actual expected    &lt;int&gt; &lt;chr&gt;                  &lt;chr&gt;   &lt;chr&gt; actual 1  26010   CCR no trailing characters  .19743 file 2  47848   CCR no trailing characters  -78692 row 3  96952   CCR no trailing characters  -46945 col 4 233211   CCR no trailing characters   89837 expected 5 307276   CCR no trailing characters  024874 actual # ... with 1 more variables: file &lt;chr&gt;
+## ... ................. ... ............................................. ........ ............................................. ...... ............................................. .... ............................................. ... ............................................. ... ............................................. ........ ............................................. ...... .......................................
 ## See problems(...) for more details.</code></pre>
 <p>readr::read_csv tells us how it interpreted the column classes, and alerted us that it was unable to load 6 rows from the data</p>
 <p>Next, we will change the column names so they are easier to work with</p>
