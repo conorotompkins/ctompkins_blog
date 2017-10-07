@@ -38,7 +38,7 @@ install.packages(c("tidyverse", "lubridate", "viridis", "ggmap"))
 ```
 
 Then load the packages
-```{r load libraries}
+```{r load libraries, message=FALSE, warning=FALSE}
 library(tidyverse)
 library(lubridate)
 library(viridis)
@@ -114,13 +114,12 @@ df %>%
 ```
 
 Before we start making plots, we will load my custom theme
-```{r load custom theme}
-source("https://raw.githubusercontent.com/conorotompkins/AdjGSAA/master/graphs/theme_nhh.R")
-theme_set(theme_nhh())
+```{r load theme}
+theme_set(theme_bw())
 ```
 
 How has the number of incidents changed over time?
-```{r incidents over time}
+```{r incidents over time, message=FALSE, warning=FALSE}
 df %>% 
   filter(zone %in% c(1:6)) %>% 
   group_by(zone, date) %>% 
@@ -181,7 +180,7 @@ ggplot(data = pot_incidents, aes(x = date, y = n)) +
 Let's look at how the data looks on a map
 
 First, create the map
-```{r create map}
+```{r create map, message=FALSE, warning=FALSE}
 city_map <-  get_map(location = "Oakland, Pittsburgh, PA",
                zoom = 12,
                maptype = "toner", 
@@ -213,6 +212,5 @@ ggmap(city_map) +
          fill = guide_colorbar("Count of Incidents")) +
   labs(x = "",
        y = "") +
-  theme_nhh() +
   theme(axis.text = element_blank())
 ```

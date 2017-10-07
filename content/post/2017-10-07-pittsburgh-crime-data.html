@@ -30,25 +30,10 @@ tags:
 <p>Install these packages using the following code</p>
 <pre class="r"><code>install.packages(c(&quot;tidyverse&quot;, &quot;lubridate&quot;, &quot;viridis&quot;, &quot;ggmap&quot;))</code></pre>
 <p>Then load the packages</p>
-<pre class="r"><code>library(tidyverse)</code></pre>
-<pre><code>## Loading tidyverse: ggplot2
-## Loading tidyverse: tibble
-## Loading tidyverse: tidyr
-## Loading tidyverse: readr
-## Loading tidyverse: purrr
-## Loading tidyverse: dplyr</code></pre>
-<pre><code>## Conflicts with tidy packages ----------------------------------------------</code></pre>
-<pre><code>## filter(): dplyr, stats
-## lag():    dplyr, stats</code></pre>
-<pre class="r"><code>library(lubridate)</code></pre>
-<pre><code>## 
-## Attaching package: &#39;lubridate&#39;</code></pre>
-<pre><code>## The following object is masked from &#39;package:base&#39;:
-## 
-##     date</code></pre>
-<pre class="r"><code>library(viridis)</code></pre>
-<pre><code>## Loading required package: viridisLite</code></pre>
-<pre class="r"><code>library(ggmap)</code></pre>
+<pre class="r"><code>library(tidyverse)
+library(lubridate)
+library(viridis)
+library(ggmap)</code></pre>
 <p>Set your working directory</p>
 <p><a href="http://rprogramming.net/set-working-directory-in-r/" class="uri">http://rprogramming.net/set-working-directory-in-r/</a></p>
 <p>Then, read the data into R</p>
@@ -151,17 +136,7 @@ tags:
 ## 15 NARC/VICE      1
 ## 16  PROPROOM      1</code></pre>
 <p>Before we start making plots, we will load my custom theme</p>
-<pre class="r"><code>source(&quot;https://raw.githubusercontent.com/conorotompkins/AdjGSAA/master/graphs/theme_nhh.R&quot;)
-theme_set(theme_nhh())</code></pre>
-<pre><code>## Warning: `panel.margin` is deprecated. Please use `panel.spacing` property
-## instead</code></pre>
-<pre><code>## Warning: `legend.margin` must be specified using `margin()`. For the old
-## behavior use legend.spacing</code></pre>
-<pre><code>## Warning: New theme missing the following elements: axis.title.x.top,
-## axis.title.y.right, axis.text.x.top, axis.text.y.right, legend.spacing.x,
-## legend.spacing.y, legend.box.margin, legend.box.background,
-## legend.box.spacing, panel.spacing.x, panel.spacing.y, plot.subtitle,
-## plot.caption, strip.placement</code></pre>
+<pre class="r"><code>theme_set(theme_bw())</code></pre>
 <p>How has the number of incidents changed over time?</p>
 <pre class="r"><code>df %&gt;% 
   filter(zone %in% c(1:6)) %&gt;% 
@@ -171,7 +146,6 @@ theme_set(theme_nhh())</code></pre>
   geom_smooth() +
   scale_fill_viridis(discrete = TRUE) +
   scale_color_viridis(discrete = TRUE)</code></pre>
-<pre><code>## `geom_smooth()` using method = &#39;gam&#39;</code></pre>
 <p><img src="/post/2017-10-07-pittsburgh-crime-data_files/figure-html/incidents%20over%20time-1.png" width="672" /></p>
 <p>Looks like there is a data or reporting problem in Zone 6</p>
 <p>Bob Gradeck pointed out that Zone 6 was closed in 2003 and reopened in 2008</p>
@@ -246,24 +220,6 @@ ggplot(data = pot_incidents, aes(x = date, y = n)) +
                maptype = &quot;toner&quot;, 
                source = &quot;stamen&quot;,
                messaging = FALSE)</code></pre>
-<pre><code>## Map from URL : http://maps.googleapis.com/maps/api/staticmap?center=Oakland,+Pittsburgh,+PA&amp;zoom=12&amp;size=640x640&amp;scale=2&amp;maptype=terrain&amp;sensor=false</code></pre>
-<pre><code>## Information from URL : http://maps.googleapis.com/maps/api/geocode/json?address=Oakland,%20Pittsburgh,%20PA&amp;sensor=false</code></pre>
-<pre><code>## Map from URL : http://tile.stamen.com/toner/12/1136/1542.png</code></pre>
-<pre><code>## Map from URL : http://tile.stamen.com/toner/12/1137/1542.png</code></pre>
-<pre><code>## Map from URL : http://tile.stamen.com/toner/12/1138/1542.png</code></pre>
-<pre><code>## Map from URL : http://tile.stamen.com/toner/12/1139/1542.png</code></pre>
-<pre><code>## Map from URL : http://tile.stamen.com/toner/12/1136/1543.png</code></pre>
-<pre><code>## Map from URL : http://tile.stamen.com/toner/12/1137/1543.png</code></pre>
-<pre><code>## Map from URL : http://tile.stamen.com/toner/12/1138/1543.png</code></pre>
-<pre><code>## Map from URL : http://tile.stamen.com/toner/12/1139/1543.png</code></pre>
-<pre><code>## Map from URL : http://tile.stamen.com/toner/12/1136/1544.png</code></pre>
-<pre><code>## Map from URL : http://tile.stamen.com/toner/12/1137/1544.png</code></pre>
-<pre><code>## Map from URL : http://tile.stamen.com/toner/12/1138/1544.png</code></pre>
-<pre><code>## Map from URL : http://tile.stamen.com/toner/12/1139/1544.png</code></pre>
-<pre><code>## Map from URL : http://tile.stamen.com/toner/12/1136/1545.png</code></pre>
-<pre><code>## Map from URL : http://tile.stamen.com/toner/12/1137/1545.png</code></pre>
-<pre><code>## Map from URL : http://tile.stamen.com/toner/12/1138/1545.png</code></pre>
-<pre><code>## Map from URL : http://tile.stamen.com/toner/12/1139/1545.png</code></pre>
 <p>View the map to make sure it looks right</p>
 <pre class="r"><code>ggmap(city_map)</code></pre>
 <p><img src="/post/2017-10-07-pittsburgh-crime-data_files/figure-html/view%20map-1.png" width="672" /></p>
@@ -282,12 +238,7 @@ ggplot(data = pot_incidents, aes(x = date, y = n)) +
          fill = guide_colorbar(&quot;Count of Incidents&quot;)) +
   labs(x = &quot;&quot;,
        y = &quot;&quot;) +
-  theme_nhh() +
   theme(axis.text = element_blank())</code></pre>
-<pre><code>## Warning: `panel.margin` is deprecated. Please use `panel.spacing` property
-## instead</code></pre>
-<pre><code>## Warning: `legend.margin` must be specified using `margin()`. For the old
-## behavior use legend.spacing</code></pre>
 <pre><code>## Warning: Removed 25078 rows containing non-finite values (stat_density2d).</code></pre>
 <p><img src="/post/2017-10-07-pittsburgh-crime-data_files/figure-html/plot%20map-1.png" width="672" /></p>
 </div>
