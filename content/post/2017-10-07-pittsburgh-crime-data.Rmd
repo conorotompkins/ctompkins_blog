@@ -17,9 +17,11 @@ tags:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+*Note: this analysis was performed in February 2017 using a contemporary dataset.*
+
 ## Exploratory Analysis
 
-The Western Pennsylvania Regional Data Center (http://www.wprdc.org/) is a great resource for data about Pittsburgh
+The [Western Pennsylvania Regional Data Center](http://www.wprdc.org/) is a great resource for data about Pittsburgh
 
 They have published an archive of police incident data from 2005-2015
 
@@ -45,9 +47,7 @@ library(viridis)
 library(ggmap)
 ```
 
-Set your working directory
-
-http://rprogramming.net/set-working-directory-in-r/
+[Set your working directory](http://rprogramming.net/set-working-directory-in-r/)
 
 Then, read the data into R
 ```{r read data into r}
@@ -132,9 +132,7 @@ df %>%
 
 Looks like there is a data or reporting problem in Zone 6
 
-Bob Gradeck pointed out that Zone 6 was closed in 2003 and reopened in 2008
-
-http://www.post-gazette.com/local/neighborhoods/2008/03/31/Police-manpower-tipped-to-West-End-s-Zone-6/stories/200803310145
+Bob Gradeck pointed out that [Zone 6 was closed in 2003 and reopened in 2008](http://www.post-gazette.com/local/neighborhoods/2008/03/31/Police-manpower-tipped-to-West-End-s-Zone-6/stories/200803310145)
 
 What does the trend look like if we just look at incidents since 2008?
 ```{r incidents over time 2008}
