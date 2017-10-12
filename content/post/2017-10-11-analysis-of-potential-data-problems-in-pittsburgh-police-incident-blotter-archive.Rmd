@@ -522,4 +522,4 @@ This broadly lines up with the borders of Zone 6
 
 Incidents reported in Zone 6 before Zone 6 was reopened in 2008 appear to be geolocated appropriately
 
-I think there should be a special flag for these incidents. Assigning incidents to a Zone that did not exist at the time seems confusing
+I think there should be a special flag for these incidents. Assigning incidents to a Zone that did not exist at the time seems confusing.
