@@ -1,0 +1,15 @@
+---
+title: Analysis of Potential Data Problems in Pittsburgh Police Incident Blotter Archive
+author: Conor Tompkins
+date: '2017-10-11'
+slug: analysis-of-potential-data-problems-in-pittsburgh-police-incident-blotter-archive
+categories:
+  - Pittsburgh
+  - R
+tags:
+  - Crime
+  - Pittsburgh
+  - WPRDC
+  - R Markdown
+---
+
