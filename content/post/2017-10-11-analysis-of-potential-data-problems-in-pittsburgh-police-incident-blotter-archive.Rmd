@@ -33,9 +33,7 @@ library(ggmap)
 library(scales)
 ```
 
-Refer to the Exploratory Analysis file on my GitHub page for an intro on working with this data
-
-[http://ctompkins.netlify.com/2017/10/07/pittsburgh-crime-data/]
+Refer to the [Exploratory Analysis post](http://ctompkins.netlify.com/2017/10/07/pittsburgh-crime-data/) for an intro on working with this data
 
 ```{r read data into r, echo=FALSE, message=FALSE, warning=FALSE}
 df <- read_csv("https://raw.githubusercontent.com/conorotompkins/pgh-crime/master/archive-police-blotter.csv")
