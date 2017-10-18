@@ -13,23 +13,28 @@ tags:
 draft: true
 ---
 
-Load the packages we will be using
+Healthy Ride is a bike rental service in Pittsburgh. The [WPRDC](http://www.wprdc.org/) hosts [data about their service](https://data.wprdc.org/organization/about/healthy-ride). We can use the data to get an idea of how Pittsburghers use the service.
+
+In my analysis, I use R, the tidyverse package, rmarkdown, and some other packages.
+
+First, load the packages we will be using:
 ```{r load packages}
 library(tidyverse)
 library(lubridate)
 library(viridis)
 ```
 
+Set the theme to format the plots:
 ```{r set theme}
 theme_set(theme_bw())
 ```
 
-#load data
+Load the data from the WPRDC (hosted on [my GitHub page](https://github.com/conorotompkins)):
 ```{r load data}
 data <- read_csv("https://raw.githubusercontent.com/conorotompkins/healthy_ride/master/data/data.csv")
 ```
 
-Format data
+Format the data and the column names to make them more useful for analysis:
 ```{r format data}
 colnames(data) <- tolower(colnames(data))
 colnames(data) <- gsub(" ", "_", colnames(data))
@@ -74,18 +79,21 @@ data_long <- data %>%
          everything())
 ```
 
-Let's look at the data
+Let's look at how the data look:L
 ```{r preview data}
 data_long
 ```
 
-```{r first chart}
+How does the use of the service trended in the long term?
+```{r long term density line plot}
 data_long %>% 
   filter(date_time_type == "start_date_time") %>% 
   ggplot(aes(date)) +
   geom_freqpoly(stat = "density")
 ```
 
+A cumulative look at the number of rides:
+```{r long term cumulative line plot}
 data_long %>% 
   filter(station_name_type == "from_station_name") %>% 
   arrange(date) %>% 
@@ -93,7 +101,10 @@ data_long %>%
   mutate(cum_sum = cumsum(n)) %>% 
   ggplot(aes(date, cum_sum)) +
   geom_line()
+```
 
+A yearly look at the data shows that ridership has dropped off in 2017:
+```{r yearly cumulative line plot}
 data_long %>%
   select(year, yday) %>% 
   mutate(year = as.factor(year)) %>% 
@@ -106,42 +117,36 @@ data_long %>%
              color = year,
              group = year)) +
   geom_line()
+```
 
-data_long %>%
-  select(month, mday) %>% 
-  #mutate(year = as.factor(year)) %>% 
-  group_by(month, mday) %>% 
-  count() %>% 
-  ungroup() %>% 
-  group_by(month) %>% 
-  mutate(cum_sum = cumsum(n)) %>% 
-  ggplot(aes(mday, cum_sum,
-             color = month,
-             group = month)) +
-  geom_line()
-
+How are the number of rides distributed throughout the day?
+```{r hour plot}
 data_long %>% 
   filter(date_time_type == "start_date_time") %>% 
   ggplot(aes(hour)) +
   geom_freqpoly(stat = "count")
+```
+Ridership peaks during evening rush-hour
 
+The trend is different for weekdays vs. weekends:
+```{r hour weekday vs weekend line plot}
 data_long %>% 
   filter(date_time_type == "start_date_time") %>% 
   ggplot(aes(hour, color = is_weekday)) +
   geom_freqpoly(stat = "count")
+```
 
-data_long %>% 
-  filter(date_time_type == "start_date_time") %>% 
-  ggplot(aes(hour, color = is_weekday)) +
-  geom_freqpoly(stat = "count")
-
-#why are the weekends so weird?
+Breaking it down by weekday, people appear to take rides during their lunch break on Fridays. Saturdays at around 1PM see peak usage.
+```{r weekday hour line plot}
 data_long %>%
   filter(date_time_type == "start_date_time") %>% 
   ggplot(aes(hour, color = wday)) +
   geom_freqpoly(stat = "count") +
   scale_x_continuous(breaks = c(0:23))
+```
 
+
+```{r count tile plot}
 data_long %>% 
   group_by(year, month, mday, hour) %>% 
   summarize(n = n()) %>% 
@@ -152,7 +157,9 @@ data_long %>%
   facet_grid(year ~ month) +
   coord_equal() +
   scale_fill_viridis()
+```
 
+```{r trip duration tile plot}
 data_long %>%
   select(year, month, mday, hour, trip_duration) %>% 
   group_by(year, month, mday, hour) %>% 
@@ -164,15 +171,4 @@ data_long %>%
   facet_grid(year ~ month) +
   coord_equal() +
   scale_fill_viridis()
-
-data_long %>%
-  select(year, month, mday, hour, trip_duration) %>% 
-  group_by(year, month, mday, hour) %>% 
-  summarize(trip_duration_sum = sum(trip_duration)) %>% 
-  ggplot(aes(mday, hour, fill = trip_duration_sum)) +
-  geom_tile() +
-  scale_y_reverse(expand = c(0,0)) +
-  scale_x_continuous(expand = c(0,0)) +
-  facet_grid(year ~ month) +
-  coord_equal() +
-  scale_fill_viridis()
+```
