@@ -1,0 +1,176 @@
+---
+title: Exploring Healthy Ride Pittsburgh Data
+author: Conor Tompkins
+date: '2017-10-18'
+slug: exploring-healthy-ride-pittsburgh-data
+categories:
+  - Pittsburgh
+  - R
+tags:
+  - Pittsburgh
+  - R Markdown
+  - WPRDC
+---
+
+Load the packages we will be using
+```{r load packages}
+library(tidyverse)
+library(lubridate)
+library(viridis)
+```
+
+```{r set theme}
+theme_set(theme_bw())
+```
+
+#load data
+```{r load data}
+data <- read_csv("https://raw.githubusercontent.com/conorotompkins/healthy_ride/master/data/data_wide.csv")
+```
+
+#need to save csv in github
+```{r format data}
+colnames(data) <- tolower(colnames(data))
+colnames(data) <- gsub(" ", "_", colnames(data))
+
+data_long <- data %>% 
+  mutate(start_date_time = starttime,
+         stop_date_time = stoptime) %>%
+  select(-c(starttime, stoptime)) %>% 
+  gather(date_time_type, date_time, c(start_date_time, stop_date_time)) %>% 
+  select(date_time_type, date_time, everything()) %>% 
+  mutate(date_time_2 = date_time) %>% 
+  separate(date_time, " ", into = c("date", "time")) %>% 
+  mutate(id = row_number(),
+         date = mdy(date),
+         year = year(date),
+         month = month(date, label = TRUE),
+         week = week(date),
+         time = hm(time),
+         hour = hour(time),
+         wday = wday(date, label = TRUE),
+         is_weekday = ifelse(wday %in% c("Mon", "Tues", "Wed", "Thurs", "Fri"), "weekday", "weekend"),
+         yday = yday(date),
+         mday = mday(date)) %>% 
+  mutate(trip_duration = (tripduration / 60) / 60) %>% 
+  gather(station_id_type, station_id, c(from_station_id, to_station_id)) %>% 
+  gather(station_name_type, station_name, c(from_station_name, to_station_name)) %>% 
+  select(date_time_type, 
+         is_weekday, 
+         date, 
+         year,
+         month,
+         time, 
+         hour,
+         wday,
+         yday,
+         mday,
+         date_time_2, 
+         station_id_type, 
+         station_id, 
+         station_name_type,
+         station_name,
+         everything())
+```
+
+Let's look at the data
+```{rpreview data}
+data_long
+```
+
+
+data_long %>% 
+  filter(date_time_type == "start_date_time") %>% 
+  ggplot(aes(date)) +
+  geom_freqpoly(stat = "density")
+
+data_long %>% 
+  filter(station_name_type == "from_station_name") %>% 
+  arrange(date) %>% 
+  count(date) %>% 
+  mutate(cum_sum = cumsum(n)) %>% 
+  ggplot(aes(date, cum_sum)) +
+  geom_line()
+
+data_long %>%
+  select(year, yday) %>% 
+  mutate(year = as.factor(year)) %>% 
+  group_by(year, yday) %>% 
+  count() %>% 
+  ungroup() %>% 
+  group_by(year) %>% 
+  mutate(cum_sum = cumsum(n)) %>% 
+  ggplot(aes(yday, cum_sum,
+             color = year,
+             group = year)) +
+  geom_line()
+
+data_long %>%
+  select(month, mday) %>% 
+  #mutate(year = as.factor(year)) %>% 
+  group_by(month, mday) %>% 
+  count() %>% 
+  ungroup() %>% 
+  group_by(month) %>% 
+  mutate(cum_sum = cumsum(n)) %>% 
+  ggplot(aes(mday, cum_sum,
+             color = month,
+             group = month)) +
+  geom_line()
+
+data_long %>% 
+  filter(date_time_type == "start_date_time") %>% 
+  ggplot(aes(hour)) +
+  geom_freqpoly(stat = "count")
+
+data_long %>% 
+  filter(date_time_type == "start_date_time") %>% 
+  ggplot(aes(hour, color = is_weekday)) +
+  geom_freqpoly(stat = "count")
+
+data_long %>% 
+  filter(date_time_type == "start_date_time") %>% 
+  ggplot(aes(hour, color = is_weekday)) +
+  geom_freqpoly(stat = "count")
+
+#why are the weekends so weird?
+data_long %>%
+  filter(date_time_type == "start_date_time") %>% 
+  ggplot(aes(hour, color = wday)) +
+  geom_freqpoly(stat = "count") +
+  scale_x_continuous(breaks = c(0:23))
+
+data_long %>% 
+  group_by(year, month, mday, hour) %>% 
+  summarize(n = n()) %>% 
+  ggplot(aes(mday, hour, fill = n)) +
+  geom_tile() +
+  scale_y_reverse(expand = c(0,0)) +
+  scale_x_continuous(expand = c(0,0)) +
+  facet_grid(year ~ month) +
+  coord_equal() +
+  scale_fill_viridis()
+
+data_long %>%
+  select(year, month, mday, hour, trip_duration) %>% 
+  group_by(year, month, mday, hour) %>% 
+  summarize(trip_duration_sum = sum(trip_duration)) %>% 
+  ggplot(aes(mday, hour, fill = trip_duration_sum)) +
+  geom_tile() +
+  scale_y_reverse(expand = c(0,0)) +
+  scale_x_continuous(expand = c(0,0)) +
+  facet_grid(year ~ month) +
+  coord_equal() +
+  scale_fill_viridis()
+
+data_long %>%
+  select(year, month, mday, hour, trip_duration) %>% 
+  group_by(year, month, mday, hour) %>% 
+  summarize(trip_duration_sum = sum(trip_duration)) %>% 
+  ggplot(aes(mday, hour, fill = trip_duration_sum)) +
+  geom_tile() +
+  scale_y_reverse(expand = c(0,0)) +
+  scale_x_continuous(expand = c(0,0)) +
+  facet_grid(year ~ month) +
+  coord_equal() +
+  scale_fill_viridis()
