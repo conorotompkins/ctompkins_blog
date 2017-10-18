@@ -25,10 +25,10 @@ theme_set(theme_bw())
 
 #load data
 ```{r load data}
-data <- read_csv("https://raw.githubusercontent.com/conorotompkins/healthy_ride/master/data/data_wide.csv")
+data <- read_csv("https://raw.githubusercontent.com/conorotompkins/healthy_ride/master/data/data.csv")
 ```
 
-#need to save csv in github
+Format data
 ```{r format data}
 colnames(data) <- tolower(colnames(data))
 colnames(data) <- gsub(" ", "_", colnames(data))
@@ -74,15 +74,16 @@ data_long <- data %>%
 ```
 
 Let's look at the data
-```{rpreview data}
+```{r preview data}
 data_long
 ```
 
-
+```{r first chart}
 data_long %>% 
   filter(date_time_type == "start_date_time") %>% 
   ggplot(aes(date)) +
   geom_freqpoly(stat = "density")
+```
 
 data_long %>% 
   filter(station_name_type == "from_station_name") %>% 
