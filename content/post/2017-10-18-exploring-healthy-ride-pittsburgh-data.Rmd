@@ -11,6 +11,7 @@ tags:
   - R Markdown
   - WPRDC
 draft: true
+runtime: shiny
 ---
 
 Healthy Ride is a bike rental service in Pittsburgh. The [WPRDC](http://www.wprdc.org/) hosts [data about their service](https://data.wprdc.org/organization/about/healthy-ride). We can use the data to get an idea of how Pittsburghers use the service.
@@ -126,6 +127,7 @@ data_long %>%
   ggplot(aes(hour)) +
   geom_freqpoly(stat = "count")
 ```
+
 Ridership peaks during evening rush-hour
 
 The trend is different for weekdays vs. weekends:
@@ -145,9 +147,10 @@ data_long %>%
   scale_x_continuous(breaks = c(0:23))
 ```
 
-
+This tile chart shows the number of rides throughout the history of the data by year, month, day of the month, and hour:
 ```{r count tile plot}
 data_long %>% 
+  #need to add complete() and replace_na() to insert 0s
   group_by(year, month, mday, hour) %>% 
   summarize(n = n()) %>% 
   ggplot(aes(mday, hour, fill = n)) +
@@ -157,10 +160,14 @@ data_long %>%
   facet_grid(year ~ month) +
   coord_equal() +
   scale_fill_viridis()
+#need to make year strip text go horizontal
+#maybe make this figure larger
 ```
 
+This tile chart shows the sum of hours biked across the same date and time variables:
 ```{r trip duration tile plot}
 data_long %>%
+  #need to add complete() and replace_na() to insert 0s
   select(year, month, mday, hour, trip_duration) %>% 
   group_by(year, month, mday, hour) %>% 
   summarize(trip_duration_sum = sum(trip_duration)) %>% 
@@ -171,4 +178,6 @@ data_long %>%
   facet_grid(year ~ month) +
   coord_equal() +
   scale_fill_viridis()
+#need to make year strip text go horizontal
+#maybe make this figure larger
 ```
