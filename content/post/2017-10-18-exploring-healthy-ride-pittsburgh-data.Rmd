@@ -17,13 +17,14 @@ options(scipen = 999)
 
 Healthy Ride is a bike rental service in Pittsburgh. The [WPRDC](http://www.wprdc.org/) hosts [data about their service](https://data.wprdc.org/organization/about/healthy-ride). We can use the data to get an idea of how Pittsburghers use the service.
 
-In my analysis, I use R, the tidyverse package, rmarkdown, and some other packages.
+In my analysis, I use R and tidyverse, lubridate, and some other packages.
 
 First, load the packages we will be using:
 ```{r load packages, message=FALSE, warning=FALSE}
 library(tidyverse)
 library(lubridate)
 library(viridis)
+library(scales)
 ```
 
 Set the theme to format the plots:
@@ -45,9 +46,8 @@ colnames(data) <- gsub(" ", "_", colnames(data))
 Change to snake_case and drop old columns:
 ```{r munge 2}
 data_long <- data %>% 
-  mutate(start_date_time = starttime,
-         stop_date_time = stoptime) %>%
-  select(-c(starttime, stoptime))
+  rename(start_date_time = starttime,
+         stop_date_time = stoptime)
 ```
 
 Make the dataframe longer:
@@ -161,7 +161,7 @@ data_long %>%
       x = "Day of the year",
       y = "Cumulative sum of rides",
       caption = "@conor_tompkins") 
-  ```
+```
 
 How are the number of rides distributed throughout the day?
 ```{r hour plot}
@@ -227,7 +227,7 @@ df_tile %>%
   ggplot(aes(mday, hour, fill = n)) +
   geom_tile() +
   scale_y_reverse(expand = c(0,0), 
-                  breaks = seq(0, 23, by = 8)) +
+                  breaks = c(0, 8, 16)) +
   scale_x_continuous(expand = c(0,0),
                      breaks = c(1, 14, 28)) +
   facet_grid(year ~ month) +
@@ -259,7 +259,7 @@ df_tile2 %>%
   ggplot(aes(mday, hour, fill = trip_duration_sum)) +
   geom_tile() +
   scale_y_reverse(expand = c(0,0), 
-                  breaks = seq(0, 23, by = 8)) +
+                  breaks = c(0, 8, 16)) +
   scale_x_continuous(expand = c(0,0),
                      breaks = c(1, 14, 28)) +
   facet_grid(year ~ month) +
