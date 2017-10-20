@@ -221,13 +221,15 @@ df_tile <- data_long %>%
 ```
 
 This code creates the tile plot:
-```{r count tile plot, fig.height=11, fig.width=7}
+```{r count tile plot}
 #this make take a minute to run
 df_tile %>% 
   ggplot(aes(mday, hour, fill = n)) +
   geom_tile() +
-  scale_y_reverse(expand = c(0,0), breaks = seq(0, 23, by = 2)) +
-  scale_x_continuous(expand = c(0,0)) +
+  scale_y_reverse(expand = c(0,0), 
+                  breaks = seq(0, 23, by = 8)) +
+  scale_x_continuous(expand = c(0,0),
+                     breaks = c(1, 14, 28)) +
   facet_grid(year ~ month) +
   coord_equal() +
   scale_fill_viridis() +
@@ -236,7 +238,8 @@ df_tile %>%
     x = "Day of month",
     y = "Hour",
     caption = "@conor_tompkins") +
-  theme(strip.text.y = element_text(angle = 0))
+  theme(strip.text.y = element_text(angle = 0),
+        axis.text = element_text(size = 6))
 ```
 
 We can also look at the the sum of hours biked across the same date and time variables:
@@ -250,13 +253,15 @@ df_tile2 <- data_long %>%
   replace_na(replace = list(trip_duration_sum = 0))
 ```
 
-```{r count tile plot2, fig.height=11, fig.width=7}
+```{r count tile plot2}
 #this make take a minute to run
 df_tile2 %>% 
   ggplot(aes(mday, hour, fill = trip_duration_sum)) +
   geom_tile() +
-  scale_y_reverse(expand = c(0,0), breaks = seq(0, 23, by = 2)) +
-  scale_x_continuous(expand = c(0,0)) +
+  scale_y_reverse(expand = c(0,0), 
+                  breaks = seq(0, 23, by = 8)) +
+  scale_x_continuous(expand = c(0,0),
+                     breaks = c(1, 14, 28)) +
   facet_grid(year ~ month) +
   coord_equal() +
   scale_fill_viridis() +
@@ -265,5 +270,6 @@ df_tile2 %>%
     x = "Day of month",
     y = "Hour",
     caption = "@conor_tompkins") +
-theme(strip.text.y = element_text(angle = 0))
+  theme(strip.text.y = element_text(angle = 0),
+        axis.text = element_text(size = 6))
 ```
