@@ -15,11 +15,12 @@ tags:
 
 
 <p>Healthy Ride is a bike rental service in Pittsburgh. The <a href="http://www.wprdc.org/">WPRDC</a> hosts <a href="https://data.wprdc.org/organization/about/healthy-ride">data about their service</a>. We can use the data to get an idea of how Pittsburghers use the service.</p>
-<p>In my analysis, I use R, the tidyverse package, rmarkdown, and some other packages.</p>
+<p>In my analysis, I use R and tidyverse, lubridate, and some other packages.</p>
 <p>First, load the packages we will be using:</p>
 <pre class="r"><code>library(tidyverse)
 library(lubridate)
-library(viridis)</code></pre>
+library(viridis)
+library(scales)</code></pre>
 <p>Set the theme to format the plots:</p>
 <pre class="r"><code>theme_set(theme_bw())</code></pre>
 <p>Load the data from the WPRDC (hosted on <a href="https://github.com/conorotompkins">my GitHub page</a>):</p>
@@ -42,9 +43,8 @@ library(viridis)</code></pre>
 colnames(data) &lt;- gsub(&quot; &quot;, &quot;_&quot;, colnames(data))</code></pre>
 <p>Change to snake_case and drop old columns:</p>
 <pre class="r"><code>data_long &lt;- data %&gt;% 
-  mutate(start_date_time = starttime,
-         stop_date_time = stoptime) %&gt;%
-  select(-c(starttime, stoptime))</code></pre>
+  rename(start_date_time = starttime,
+         stop_date_time = stoptime)</code></pre>
 <p>Make the dataframe longer:</p>
 <pre class="r"><code>data_long &lt;- data_long %&gt;% 
   gather(date_time_type, date_time, c(start_date_time, stop_date_time)) %&gt;% 
@@ -207,7 +207,7 @@ df_tile %&gt;%
   ggplot(aes(mday, hour, fill = n)) +
   geom_tile() +
   scale_y_reverse(expand = c(0,0), 
-                  breaks = seq(0, 23, by = 8)) +
+                  breaks = c(0, 8, 16)) +
   scale_x_continuous(expand = c(0,0),
                      breaks = c(1, 14, 28)) +
   facet_grid(year ~ month) +
@@ -234,7 +234,7 @@ df_tile2 %&gt;%
   ggplot(aes(mday, hour, fill = trip_duration_sum)) +
   geom_tile() +
   scale_y_reverse(expand = c(0,0), 
-                  breaks = seq(0, 23, by = 8)) +
+                  breaks = c(0, 8, 16)) +
   scale_x_continuous(expand = c(0,0),
                      breaks = c(1, 14, 28)) +
   facet_grid(year ~ month) +
