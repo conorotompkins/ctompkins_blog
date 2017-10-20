@@ -1,5 +1,5 @@
 ---
-title: Exploring Healthy Ride Pittsburgh Data
+title: Exploring Healthy Ride Pittsburgh Data With R
 author: Conor Tompkins
 date: '2017-10-18'
 slug: exploring-healthy-ride-pittsburgh-data
