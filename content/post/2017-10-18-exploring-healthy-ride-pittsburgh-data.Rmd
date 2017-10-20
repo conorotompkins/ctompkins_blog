@@ -10,7 +10,6 @@ tags:
   - Pittsburgh
   - R Markdown
   - WPRDC
-runtime: shiny
 ---
 ```{r initial options, message=FALSE, warning=FALSE, include=FALSE}
 options(scipen = 999)
