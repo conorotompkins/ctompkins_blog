@@ -118,7 +118,7 @@ colnames(data) &lt;- gsub(&quot; &quot;, &quot;_&quot;, colnames(data))</code></
        x = &quot;Date&quot;,
        y = &quot;Density of rides&quot;,
        caption = &quot;@conor_tompkins&quot;)</code></pre>
-<p><img src="/post/2017-10-18-exploring-healthy-ride-pittsburgh-data_files/figure-html/long%20term%20density%20line%20plot-1.png" width="672" /></p>
+<p><img src="/post/2017-10-18-exploring-healthy-ride-pittsburgh-data_files/figure-html/long term density line plot-1.png" width="672" /></p>
 <p>A cumulative look at the number of rides:</p>
 <pre class="r"><code>data_long %&gt;% 
   filter(station_name_type == &quot;from_station_name&quot;) %&gt;% 
@@ -134,7 +134,7 @@ colnames(data) &lt;- gsub(&quot; &quot;, &quot;_&quot;, colnames(data))</code></
       x = &quot;Date&quot;,
       y = &quot;Cumulative sum of rides&quot;,
       caption = &quot;@conor_tompkins&quot;)</code></pre>
-<p><img src="/post/2017-10-18-exploring-healthy-ride-pittsburgh-data_files/figure-html/long%20term%20cumulative%20line%20plot-1.png" width="672" /></p>
+<p><img src="/post/2017-10-18-exploring-healthy-ride-pittsburgh-data_files/figure-html/long term cumulative line plot-1.png" width="672" /></p>
 <p>A yearly look at the data shows that ridership has dropped off in 2017:</p>
 <pre class="r"><code>data_long %&gt;%
   select(year, yday) %&gt;% 
@@ -154,7 +154,7 @@ colnames(data) &lt;- gsub(&quot; &quot;, &quot;_&quot;, colnames(data))</code></
       x = &quot;Day of the year&quot;,
       y = &quot;Cumulative sum of rides&quot;,
       caption = &quot;@conor_tompkins&quot;) </code></pre>
-<p><img src="/post/2017-10-18-exploring-healthy-ride-pittsburgh-data_files/figure-html/yearly%20cumulative%20line%20plot-1.png" width="672" /></p>
+<p><img src="/post/2017-10-18-exploring-healthy-ride-pittsburgh-data_files/figure-html/yearly cumulative line plot-1.png" width="672" /></p>
 <p>How are the number of rides distributed throughout the day?</p>
 <pre class="r"><code>data_long %&gt;% 
   filter(date_time_type == &quot;start_date_time&quot;) %&gt;% 
@@ -165,7 +165,7 @@ colnames(data) &lt;- gsub(&quot; &quot;, &quot;_&quot;, colnames(data))</code></
       x = &quot;Hour&quot;,
       y = &quot;Count of rides&quot;,
       caption = &quot;@conor_tompkins&quot;) </code></pre>
-<p><img src="/post/2017-10-18-exploring-healthy-ride-pittsburgh-data_files/figure-html/hour%20plot-1.png" width="672" /></p>
+<p><img src="/post/2017-10-18-exploring-healthy-ride-pittsburgh-data_files/figure-html/hour plot-1.png" width="672" /></p>
 <p>Ridership peaks during evening rush-hour.</p>
 <p>The trend is different for weekdays vs. weekends:</p>
 <pre class="r"><code>data_long %&gt;% 
@@ -179,7 +179,7 @@ colnames(data) &lt;- gsub(&quot; &quot;, &quot;_&quot;, colnames(data))</code></
     x = &quot;Hour&quot;,
     y = &quot;Count of rides&quot;,
     caption = &quot;@conor_tompkins&quot;)</code></pre>
-<p><img src="/post/2017-10-18-exploring-healthy-ride-pittsburgh-data_files/figure-html/hour%20weekday%20vs%20weekend%20line%20plot-1.png" width="672" /></p>
+<p><img src="/post/2017-10-18-exploring-healthy-ride-pittsburgh-data_files/figure-html/hour weekday vs weekend line plot-1.png" width="672" /></p>
 <p>Breaking it down by weekday, people appear to take rides during their lunch break on Fridays. Saturdays at around 1PM see peak usage.</p>
 <pre class="r"><code>data_long %&gt;%
   filter(date_time_type == &quot;start_date_time&quot;) %&gt;% 
@@ -192,7 +192,7 @@ colnames(data) &lt;- gsub(&quot; &quot;, &quot;_&quot;, colnames(data))</code></
     x = &quot;Hour&quot;,
     y = &quot;Count of rides&quot;,
     caption = &quot;@conor_tompkins&quot;)</code></pre>
-<p><img src="/post/2017-10-18-exploring-healthy-ride-pittsburgh-data_files/figure-html/weekday%20hour%20line%20plot-1.png" width="672" /></p>
+<p><img src="/post/2017-10-18-exploring-healthy-ride-pittsburgh-data_files/figure-html/weekday hour line plot-1.png" width="672" /></p>
 <p>We can also zoom out to look at the data by year, month, day of the month, and hour. First, create a new dataframe and use complete() and replace_na() to fill out the dataframe:</p>
 <pre class="r"><code>#this make take a minute to run
 df_tile &lt;- data_long %&gt;% 
@@ -206,8 +206,10 @@ df_tile &lt;- data_long %&gt;%
 df_tile %&gt;% 
   ggplot(aes(mday, hour, fill = n)) +
   geom_tile() +
-  scale_y_reverse(expand = c(0,0), breaks = seq(0, 23, by = 2)) +
-  scale_x_continuous(expand = c(0,0)) +
+  scale_y_reverse(expand = c(0,0), 
+                  breaks = seq(0, 23, by = 8)) +
+  scale_x_continuous(expand = c(0,0),
+                     breaks = c(1, 14, 28)) +
   facet_grid(year ~ month) +
   coord_equal() +
   scale_fill_viridis() +
@@ -216,8 +218,9 @@ df_tile %&gt;%
     x = &quot;Day of month&quot;,
     y = &quot;Hour&quot;,
     caption = &quot;@conor_tompkins&quot;) +
-  theme(strip.text.y = element_text(angle = 0))</code></pre>
-<p><img src="/post/2017-10-18-exploring-healthy-ride-pittsburgh-data_files/figure-html/count%20tile%20plot-1.png" width="672" /></p>
+  theme(strip.text.y = element_text(angle = 0),
+        axis.text = element_text(size = 6))</code></pre>
+<p><img src="/post/2017-10-18-exploring-healthy-ride-pittsburgh-data_files/figure-html/count tile plot-1.png" width="672" /></p>
 <p>We can also look at the the sum of hours biked across the same date and time variables:</p>
 <pre class="r"><code>#this make take a minute to run
 df_tile2 &lt;- data_long %&gt;%
@@ -230,8 +233,10 @@ df_tile2 &lt;- data_long %&gt;%
 df_tile2 %&gt;% 
   ggplot(aes(mday, hour, fill = trip_duration_sum)) +
   geom_tile() +
-  scale_y_reverse(expand = c(0,0), breaks = seq(0, 23, by = 2)) +
-  scale_x_continuous(expand = c(0,0)) +
+  scale_y_reverse(expand = c(0,0), 
+                  breaks = seq(0, 23, by = 8)) +
+  scale_x_continuous(expand = c(0,0),
+                     breaks = c(1, 14, 28)) +
   facet_grid(year ~ month) +
   coord_equal() +
   scale_fill_viridis() +
@@ -240,5 +245,6 @@ df_tile2 %&gt;%
     x = &quot;Day of month&quot;,
     y = &quot;Hour&quot;,
     caption = &quot;@conor_tompkins&quot;) +
-theme(strip.text.y = element_text(angle = 0))</code></pre>
+  theme(strip.text.y = element_text(angle = 0),
+        axis.text = element_text(size = 6))</code></pre>
 <p><img src="/post/2017-10-18-exploring-healthy-ride-pittsburgh-data_files/figure-html/count%20tile%20plot2-1.png" width="672" /></p>
