@@ -10,5 +10,103 @@ tags:
   - Pittsburgh
   - WPRDC
   - Healthy Ride
+draft: true
 ---
 
+```{r initial options, message=FALSE, warning=FALSE, include=FALSE}
+options(scipen = 999)
+```
+
+This post is about exploring the Healthy Ride dataset using network analysis. 
+
+This is my second post about the Healthy Ride bike service in Pittsburgh. You can find the first post [here](https://ctompkins.netlify.com/2017/10/18/exploring-healthy-ride-pittsburgh-data/), where I did some exploratory analysis of the data.
+
+Load the packages we will be using:
+```{r load packages, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(ggraph)
+library(igraph)
+```
+
+
+Load the data from the WPRDC (hosted on [my GitHub page](https://github.com/conorotompkins)):
+```{r load data}
+data <- read_csv("https://raw.githubusercontent.com/conorotompkins/healthy_ride/master/data/data.csv")
+```
+
+
+Again, we need to format the data and the column names to make them more useful for analysis. Since this is a repeat of the script from the last post, I will just do it all in one go:
+```{r munge 1}
+colnames(data) <- tolower(colnames(data))
+colnames(data) <- gsub(" ", "_", colnames(data))
+
+data_long <- data %>% 
+  rename(start_date_time = starttime,
+         stop_date_time = stoptime) %>% 
+  gather(date_time_type, date_time, c(start_date_time, stop_date_time)) %>% 
+  select(date_time_type, date_time, everything()) %>% 
+  mutate(date_time_2 = date_time) %>% 
+  separate(date_time, " ", into = c("date", "time")) %>% 
+  mutate(id = row_number(),
+         date = mdy(date),
+         year = year(date),
+         month = month(date, label = TRUE),
+         week = week(date),
+         time = hm(time),
+         hour = hour(time),
+         wday = wday(date, label = TRUE),
+         is_weekday = ifelse(wday %in% c("Mon", "Tues", "Wed", "Thurs", "Fri"), "weekday", "weekend"),
+         yday = yday(date),
+         mday = mday(date)) %>% 
+  mutate(trip_duration = (tripduration / 60) / 60) %>% 
+  gather(station_id_type, station_id, c(from_station_id, to_station_id)) %>% 
+  gather(station_name_type, station_name, c(from_station_name, to_station_name)) %>% 
+  select(date_time_type, 
+         is_weekday, 
+         date, 
+         year,
+         month,
+         time, 
+         hour,
+         wday,
+         yday,
+         mday,
+         date_time_2, 
+         station_id_type, 
+         station_id, 
+         station_name_type,
+         station_name,
+         everything())
+```
+
+
+data_wide <- data_long %>% 
+  spread(station_name_type, station_name)
+
+top_stations <- data %>% 
+  select(from_station_name) %>%
+  count(from_station_name, sort = TRUE) %>% 
+  top_n(3, n) %>% 
+  select(from_station_name) %>% 
+  unlist()
+
+network_data <- data_wide %>% 
+  select(from_station_name, to_station_name) %>% 
+  filter(from_station_name %in% top_stations) %>% 
+  count(from_station_name, to_station_name, sort = TRUE)
+
+network_data %>% 
+  select(from_station_name) %>% 
+  unique()
+
+
+graph <- graph_from_data_frame(network_data)
+
+ggraph(graph) + 
+  geom_edge_fan(aes(edge_alpha = n,
+                     edge_width = n)) +
+  geom_edge_loop() +
+  geom_node_point() +
+  geom_node_label(aes(label = name)) +
+  scale_edge_alpha_continuous(range = c(.5, 1)) +
+  theme_graph()
