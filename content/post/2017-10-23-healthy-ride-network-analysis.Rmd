@@ -29,6 +29,7 @@ library(ggraph)
 library(igraph)
 library(lubridate)
 library(viridis)
+library(stringr)
 ```
 
 
@@ -117,7 +118,6 @@ ggraph(simple_network) +
   geom_edge_loop(aes(edge_alpha = n,
                      edge_width = n)) +
   geom_node_point() +
-  #geom_node_label(aes(label = name)) +
   scale_edge_alpha_continuous(range = c(.1, 1)) +
   scale_edge_width_continuous(range = c(.5, 1))
 ```
@@ -127,8 +127,6 @@ This is a bit of a hairball, and is frankly not useful.
 Instead, lets look at how the top 400 combinations of departures and arrivals are networked:
 ```{r top 200, message=FALSE, warning=FALSE}
 simple_network <- data_wide %>% 
-  #filter(from_station_name %in% top_from_stations,
-  #       to_station_name %in% top_to_stations) %>% 
   count(from_station_name, to_station_name, sort = TRUE) %>% 
   top_n(400)
 
@@ -141,10 +139,11 @@ ggraph(simple_network) +
   geom_edge_loop(aes(edge_alpha = n,
                      edge_width = n)) +
   geom_node_point() +
-  #geom_node_label(aes(label = name)) +
   scale_edge_alpha_continuous(range = c(.3, 1)) +
   scale_edge_width_continuous(range = c(.5, 1))
 ```
+
+There appear to be two clusters of stations.
 
 We can also do a more traditional heatmap of the departure and arrival stations:
 ```{r top 200 weekday, message=FALSE, warning=FALSE}
@@ -153,32 +152,42 @@ simple_network <- data_wide %>%
   #       to_station_name %in% top_to_stations) %>% 
   count(from_station_name, to_station_name, sort = TRUE) %>% 
   top_n(400) %>% 
-  ungroup()
+  ungroup() %>% 
+  complete(from_station_name, to_station_name) %>% 
+  replace_na(list(n = 0)) %>% 
+  mutate(from_station_name_abbr = str_c(str_sub(from_station_name, 1, 18), "..."),
+         to_station_name_abbr = str_c(str_sub(to_station_name, 1, 18), "..."))
 #add complete and replace_na
 
+length(unique(simple_network$from_station_name) == unique(simple_network$from_station_name_abbr))
+length(unique(simple_network$to_station_name)) == length(unique(simple_network$to_station_name_abbr))
+
+
 x_axis <- simple_network %>% 
-  group_by(from_station_name) %>% 
+  group_by(from_station_name_abbr) %>% 
   summarize(n = sum(n)) %>% 
   arrange(desc(n)) %>%
-  select(from_station_name) %>% 
+  select(from_station_name_abbr) %>% 
   unlist()
   
 y_axis <- simple_network %>% 
-  group_by(to_station_name) %>% 
+  group_by(to_station_name_abbr) %>% 
   summarize(n = sum(n)) %>% 
   arrange(desc(n)) %>%
-  select(to_station_name) %>% 
+  select(to_station_name_abbr) %>% 
   unlist()
 
 simple_network %>% 
-  mutate(from_station_name = factor(from_station_name, levels = x_axis),
-         to_station_name = factor(to_station_name, levels = y_axis)) %>% 
-  ggplot(aes(from_station_name, to_station_name, fill = n)) +
+  mutate(from_station_name_abbr = factor(from_station_name_abbr, levels = x_axis),
+         to_station_name_abbr = factor(to_station_name_abbr, levels = y_axis)) %>% 
+  ggplot(aes(from_station_name_abbr, to_station_name_abbr, fill = n)) +
   geom_tile() +
   theme_bw() +
   coord_equal() +
   scale_fill_viridis() +
-  theme(axis.text.x = element_text(angle = 90))
+  #scale_x_discrete(breaks = unique(simple_network$from_station_name_abbr)) +
+  guides(fill = guide_colorbar(title = "Number of Rides")) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0))
 ```
 
 It appears that many trips start and end at the same station.
@@ -222,6 +231,24 @@ ggraph(simple_network) +
 
 The network appears to be smaller and more compact on the weekends
 
+
+```{r}
+df_test <- data_wide %>% 
+  select(from_station_name, to_station_name, is_weekday) %>% 
+  mutate(is_same = ifelse(from_station_name == to_station_name, "same_location", "different_location")) %>%
+  group_by(is_same, is_weekday) %>% 
+  count() %>% 
+  spread(is_same, n) %>% 
+  gather(location_type, n, -is_weekday) %>% 
+  mutate(from_location = "from_location") %>% 
+  select(is_weekday, from_location, location_type, n) %>% 
+  mutate(n = round(n / sum(n), digits = 2)) %>% 
+  arrange(is_weekday)
+```
+
+A greater percentage of trips start and end at the same station on the weekends than on weekdays
+
 ```{r}
 #add network chart split by weekday/weekend and time of day (early morning, midday, evening, night)
+#cut hour column
 ```
