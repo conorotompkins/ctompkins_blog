@@ -226,7 +226,8 @@ ggraph(simple_network) +
   geom_node_point() +
   scale_edge_alpha_continuous(range = c(.3, 1)) +
   scale_edge_width_continuous(range = c(.5, 1)) +
-  facet_edges(~is_weekday)
+  facet_edges(~is_weekday) +
+  th_foreground(foreground = 'grey80', border = TRUE)
 ```
 
 The network appears to be smaller and more compact on the weekends
@@ -244,6 +245,12 @@ df_test <- data_wide %>%
   select(is_weekday, from_location, location_type, n) %>% 
   mutate(n = round(n / sum(n), digits = 2)) %>% 
   arrange(is_weekday)
+
+df_test %>% 
+  ggplot(aes(location_type, n, fill = is_weekday)) +
+  geom_col(position = "dodge") +
+  labs(y = "% of rides") +
+  theme_bw()
 ```
 
 A greater percentage of trips start and end at the same station on the weekends than on weekdays
@@ -251,4 +258,26 @@ A greater percentage of trips start and end at the same station on the weekends 
 ```{r}
 #add network chart split by weekday/weekend and time of day (early morning, midday, evening, night)
 #cut hour column
+simple_network <- data_wide %>% 
+  mutate(time_of_day = cut(hour, c(0, 6, 12, 18, 24), labels = c("early morning", "Mid day", "Evening", "Night time"), ordered_result = TRUE)) %>% 
+  count(is_weekday, time_of_day, from_station_name, to_station_name, sort = TRUE) %>% 
+  top_n(400)
+
+str(simple_network$time_of_day)
+
+simple_network <- simple_network %>% 
+  graph_from_data_frame()
+
+ggraph(simple_network) +
+  geom_edge_fan(aes(edge_alpha = n,
+                    edge_width = n,
+                    color = is_weekday)) +
+  geom_edge_loop(aes(edge_alpha = n,
+                     edge_width = n,
+                     color = is_weekday)) +
+  geom_node_point() +
+  scale_edge_alpha_continuous(range = c(.3, 1)) +
+  scale_edge_width_continuous(range = c(.5, 1)) +
+  facet_edges(~time_of_day)
+#faceting not working
 ```
