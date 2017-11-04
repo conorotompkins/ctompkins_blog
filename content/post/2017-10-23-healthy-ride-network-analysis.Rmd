@@ -110,7 +110,7 @@ To start, lets look at the entire network:
   count(from_station_name, to_station_name, sort = TRUE))
 
 simple_network <- simple_network %>% 
-  graph_from_data_frame()
+  graph_from_data_frame(directed = TRUE)
 
 ggraph(simple_network) +
   geom_edge_fan(aes(edge_alpha = n,
@@ -131,7 +131,7 @@ simple_network <- data_wide %>%
   top_n(400)
 
 simple_network <- simple_network %>% 
-  graph_from_data_frame()
+  graph_from_data_frame(directed = TRUE)
 
 ggraph(simple_network) +
   geom_edge_fan(aes(edge_alpha = n,
@@ -214,7 +214,7 @@ simple_network <- data_wide %>%
   top_n(400)
 
 simple_network <- simple_network %>% 
-  graph_from_data_frame()
+  graph_from_data_frame(directed = TRUE)
 
 ggraph(simple_network) +
   geom_edge_fan(aes(edge_alpha = n,
@@ -258,34 +258,34 @@ A greater percentage of trips start and end at the same station on the weekends 
 ```{r}
 #add network chart split by weekday/weekend and time of day (early morning, midday, evening, night)
 #cut hour column
-unique(data_wide$hour)
-
 simple_network <- data_wide %>% 
-  mutate(time_of_day = cut(hour, breaks = c(0, 6, 12, 18, 23), labels = c("early morning", "Mid day", "Evening", "Night time"), ordered_result = TRUE)) %>% 
-  count(from_station_name, to_station_name, is_weekday, time_of_day, sort = TRUE) %>% 
-  filter(n > 100) %>% 
-  mutate(time_of_day = as.character(time_of_day))
-
-
+  mutate(time_of_day = cut(hour, breaks = c(-Inf, 3, 6, 9, 12, 15, 18, 21, Inf), 
+                           labels = c("0-3", "3-6", "6-9", "9-12", "12-15", "15-18", "18-21", "21-24"), 
+                           ordered_result = TRUE)) %>% 
+  count(from_station_name, to_station_name, time_of_day, sort = TRUE) %>% 
+  filter(n > 150) #%>% 
+  #mutate(time_of_day = factor(time_of_day, levels = c("0-3", "3-6", "6-9", "9-12", "12-15", "15-18", "18-21", "21-24")))
 
 #sum(is.na(simple_network))
-
 #str(simple_network)
 
 simple_network <- simple_network %>% 
-  graph_from_data_frame()
+  graph_from_data_frame(directed = TRUE)
 #str(simple_network)
 
 ggraph(simple_network) +
   geom_edge_fan(aes(edge_alpha = n,
-                    edge_width = n,
-                    color = is_weekday)) +
+                    edge_width = n)) +
   geom_edge_loop(aes(edge_alpha = n,
-                     edge_width = n,
-                     color = is_weekday)) +
+                     edge_width = n)) +
   geom_node_point() +
   scale_edge_alpha_continuous(range = c(.3, 1)) +
   scale_edge_width_continuous(range = c(.5, 1)) +
-  facet_graph(is_weekday ~ time_of_day)
+  #facet_graph(is_weekday ~ time_of_day) +
+  #facet_edges(~is_weekday) +
+  facet_edges(~ time_of_day,
+              ncol = 2) +
+  th_foreground(foreground = 'grey80', border = TRUE)
 #faceting not working
+#warnings()
 ```
