@@ -258,15 +258,23 @@ A greater percentage of trips start and end at the same station on the weekends 
 ```{r}
 #add network chart split by weekday/weekend and time of day (early morning, midday, evening, night)
 #cut hour column
-simple_network <- data_wide %>% 
-  mutate(time_of_day = cut(hour, c(0, 6, 12, 18, 24), labels = c("early morning", "Mid day", "Evening", "Night time"), ordered_result = TRUE)) %>% 
-  count(is_weekday, time_of_day, from_station_name, to_station_name, sort = TRUE) %>% 
-  top_n(400)
+unique(data_wide$hour)
 
-str(simple_network$time_of_day)
+simple_network <- data_wide %>% 
+  mutate(time_of_day = cut(hour, breaks = c(0, 6, 12, 18, 23), labels = c("early morning", "Mid day", "Evening", "Night time"), ordered_result = TRUE)) %>% 
+  count(from_station_name, to_station_name, is_weekday, time_of_day, sort = TRUE) %>% 
+  filter(n > 100) %>% 
+  mutate(time_of_day = as.character(time_of_day))
+
+
+
+#sum(is.na(simple_network))
+
+#str(simple_network)
 
 simple_network <- simple_network %>% 
   graph_from_data_frame()
+#str(simple_network)
 
 ggraph(simple_network) +
   geom_edge_fan(aes(edge_alpha = n,
@@ -278,6 +286,6 @@ ggraph(simple_network) +
   geom_node_point() +
   scale_edge_alpha_continuous(range = c(.3, 1)) +
   scale_edge_width_continuous(range = c(.5, 1)) +
-  facet_edges(~time_of_day)
+  facet_graph(is_weekday ~ time_of_day)
 #faceting not working
 ```
