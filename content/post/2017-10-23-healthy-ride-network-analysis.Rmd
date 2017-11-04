@@ -118,17 +118,17 @@ ggraph(simple_network) +
   geom_edge_loop(aes(edge_alpha = n,
                      edge_width = n)) +
   geom_node_point() +
-  scale_edge_alpha_continuous(range = c(.1, 1)) +
+  scale_edge_alpha_continuous(range = c(.3, 1)) +
   scale_edge_width_continuous(range = c(.5, 1))
 ```
 
 This is a bit of a hairball, and is frankly not useful.
 
-Instead, lets look at how the top 400 combinations of departures and arrivals are networked:
+Instead, lets look at how the network of stations with at least 150 connections looks
 ```{r top 200, message=FALSE, warning=FALSE}
 simple_network <- data_wide %>% 
   count(from_station_name, to_station_name, sort = TRUE) %>% 
-  top_n(400)
+  filter(n >= 150)
 
 simple_network <- simple_network %>% 
   graph_from_data_frame(directed = TRUE)
@@ -193,7 +193,7 @@ simple_network %>%
 It appears that many trips start and end at the same station.
 
 We can investigate this phenomenon:
-```{r}
+```{r is_weekday_location}
 data_wide %>% 
   select(from_station_name, to_station_name) %>% 
   mutate(is_same = ifelse(from_station_name == to_station_name, "same_location", "different_location")) %>%
@@ -207,11 +207,34 @@ data_wide %>%
 ```
 27% of all trips end at the same station they began at.
 
+```{r bar_plot}
+df_test <- data_wide %>% 
+  select(from_station_name, to_station_name, is_weekday) %>% 
+  mutate(is_same = ifelse(from_station_name == to_station_name, "same_location", "different_location")) %>%
+  group_by(is_same, is_weekday) %>% 
+  count() %>% 
+  spread(is_same, n) %>% 
+  gather(location_type, n, -is_weekday) %>% 
+  mutate(from_location = "from_location") %>% 
+  select(is_weekday, from_location, location_type, n) %>% 
+  mutate(n = round(n / sum(n), digits = 2)) %>% 
+  arrange(is_weekday)
+
+df_test %>% 
+  ggplot(aes(is_weekday, n, fill = location_type)) +
+  geom_col(position = "dodge") +
+  labs(y = "% of rides",
+       title = "test") +
+  theme_bw()
+```
+
+A greater percentage of trips start and end at the same station on the weekends than on weekdays
+
 Does the network look different on weekdays vs. weekends?
 ```{r top_200_weekday, message=FALSE, warning=FALSE}
 simple_network <- data_wide %>% 
   count(from_station_name, to_station_name, is_weekday, sort = TRUE) %>% 
-  top_n(400)
+  filter(n >= 150)
 
 simple_network <- simple_network %>% 
   graph_from_data_frame(directed = TRUE)
@@ -232,30 +255,7 @@ ggraph(simple_network) +
 
 The network appears to be smaller and more compact on the weekends
 
-
-```{r}
-df_test <- data_wide %>% 
-  select(from_station_name, to_station_name, is_weekday) %>% 
-  mutate(is_same = ifelse(from_station_name == to_station_name, "same_location", "different_location")) %>%
-  group_by(is_same, is_weekday) %>% 
-  count() %>% 
-  spread(is_same, n) %>% 
-  gather(location_type, n, -is_weekday) %>% 
-  mutate(from_location = "from_location") %>% 
-  select(is_weekday, from_location, location_type, n) %>% 
-  mutate(n = round(n / sum(n), digits = 2)) %>% 
-  arrange(is_weekday)
-
-df_test %>% 
-  ggplot(aes(location_type, n, fill = is_weekday)) +
-  geom_col(position = "dodge") +
-  labs(y = "% of rides") +
-  theme_bw()
-```
-
-A greater percentage of trips start and end at the same station on the weekends than on weekdays
-
-```{r}
+```{r time_of_day, message=FALSE, warning=FALSE}
 #add network chart split by weekday/weekend and time of day (early morning, midday, evening, night)
 #cut hour column
 simple_network <- data_wide %>% 
