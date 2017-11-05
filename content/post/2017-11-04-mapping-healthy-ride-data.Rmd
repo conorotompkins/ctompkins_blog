@@ -1,0 +1,29 @@
+---
+title: Mapping Healthy Ride Data
+author: Conor Tompkins
+date: '2017-11-04'
+slug: mapping-healthy-ride-data
+categories:
+  - Pittsburgh
+  - R
+tags:
+  - Healthy Ride
+  - Pittsburgh
+  - R Markdown
+  - WPRDC
+runtime: shiny
+---
+
+This post explores the Healthy Ride dataset using network analysis. 
+
+This is my second post about the Healthy Ride bike service in Pittsburgh. You can find the first post [here](https://ctompkins.netlify.com/2017/10/18/exploring-healthy-ride-pittsburgh-data/), where I did some exploratory analysis of the data.
+
+Load the R packages we will be using:
+```{r load_packages, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(ggraph)
+library(igraph)
+library(lubridate)
+library(viridis)
+library(stringr)
+```
