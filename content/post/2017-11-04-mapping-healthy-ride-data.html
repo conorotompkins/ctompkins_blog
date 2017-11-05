@@ -1,0 +1,126 @@
+---
+title: Mapping Healthy Ride Data
+author: Conor Tompkins
+date: '2017-11-04'
+slug: mapping-healthy-ride-data
+categories:
+  - Pittsburgh
+  - R
+tags:
+  - Healthy Ride
+  - Pittsburgh
+  - R Markdown
+  - WPRDC
+runtime: shiny
+---
+
+
+
+<p>This post explores the Healthy Ride dataset using network analysis.</p>
+<p>This is my second post about the Healthy Ride bike service in Pittsburgh. You can find the first post <a href="https://ctompkins.netlify.com/2017/10/18/exploring-healthy-ride-pittsburgh-data/">here</a>, where I did some exploratory analysis of the data.</p>
+<p>Load the R packages we will be using:</p>
+<pre class="r"><code>library(tidyverse)
+library(ggmap)
+library(lubridate)
+library(viridis)
+library(stringr)</code></pre>
+<p>Load the data from the WPRDC (hosted on <a href="https://github.com/conorotompkins">my GitHub page</a>):</p>
+<pre class="r"><code>data &lt;- read_csv(&quot;https://raw.githubusercontent.com/conorotompkins/healthy_ride/master/data/data.csv&quot;)</code></pre>
+<p>Again, we need to format the data and the column names to make them more useful for analysis. Since this is a repeat of the script from the last post, I will just do it all in one go:</p>
+<pre class="r"><code>colnames(data) &lt;- tolower(colnames(data))
+colnames(data) &lt;- gsub(&quot; &quot;, &quot;_&quot;, colnames(data))
+
+data_long &lt;- data %&gt;% 
+  rename(start_date_time = starttime,
+         stop_date_time = stoptime) %&gt;% 
+  gather(date_time_type, date_time, c(start_date_time, stop_date_time)) %&gt;% 
+  select(date_time_type, date_time, everything()) %&gt;% 
+  mutate(date_time_2 = date_time) %&gt;% 
+  separate(date_time, &quot; &quot;, into = c(&quot;date&quot;, &quot;time&quot;)) %&gt;% 
+  mutate(id = row_number(),
+         date = mdy(date),
+         year = year(date),
+         month = month(date, label = TRUE),
+         week = week(date),
+         time = hm(time),
+         hour = hour(time),
+         wday = wday(date, label = TRUE),
+         is_weekday = ifelse(wday %in% c(&quot;Mon&quot;, &quot;Tues&quot;, &quot;Wed&quot;, &quot;Thurs&quot;, &quot;Fri&quot;), &quot;weekday&quot;, &quot;weekend&quot;),
+         yday = yday(date),
+         mday = mday(date)) %&gt;% 
+  mutate(trip_duration = (tripduration / 60) / 60) %&gt;% 
+  gather(station_id_type, station_id, c(from_station_id, to_station_id)) %&gt;% 
+  gather(station_name_type, station_name, c(from_station_name, to_station_name)) %&gt;% 
+  select(date_time_type, 
+         is_weekday, 
+         date, 
+         year,
+         month,
+         time, 
+         hour,
+         wday,
+         yday,
+         mday,
+         date_time_2, 
+         station_id_type, 
+         station_id, 
+         station_name_type,
+         station_name,
+         everything())</code></pre>
+<p>We also need to load the CSV with the longitude and latitude for the Healthy Ride stations</p>
+<pre class="r"><code>data_station_locations &lt;- read_csv(&quot;https://raw.githubusercontent.com/conorotompkins/healthy_ride/master/data/stations/station_locations.csv&quot;)</code></pre>
+<pre class="r"><code>(df_station_totals &lt;- data_long %&gt;% 
+  group_by(station_name) %&gt;% 
+  summarize(number_of_trips = n()) %&gt;% 
+  arrange(desc(number_of_trips), station_name) %&gt;% 
+  left_join(data_station_locations) %&gt;% 
+  select(station_name, number_of_trips, longitude, latitude))</code></pre>
+<pre><code>## # A tibble: 98 x 4
+##                                                station_name
+##                                                       &lt;chr&gt;
+##  1                 S 27th St &amp; Sidney St. (Southside Works)
+##  2                                 Liberty Ave &amp; Stanwix St
+##  3                               Forbes Ave &amp; Market Square
+##  4                                       21st St &amp; Penn Ave
+##  5                                       21st St &amp; Penn Ave
+##  6 10th St &amp; Penn Ave (David L. Lawrence Convention Center)
+##  7                 North Shore Trail &amp; Fort Duquesne Bridge
+##  8                      Isabella St &amp; Federal St (PNC Park)
+##  9                                  S 12th St &amp; E Carson St
+## 10                                  S 12th St &amp; E Carson St
+## # ... with 88 more rows, and 3 more variables: number_of_trips &lt;int&gt;,
+## #   longitude &lt;dbl&gt;, latitude &lt;dbl&gt;</code></pre>
+<p>Where are the Healthy Ride Stations?</p>
+<pre class="r"><code>pgh_map &lt;- get_map(location = &quot;The Hill Pittsburgh, PA&quot;, zoom = 13)</code></pre>
+<pre><code>## Map from URL : http://maps.googleapis.com/maps/api/staticmap?center=The+Hill+Pittsburgh,+PA&amp;zoom=13&amp;size=640x640&amp;scale=2&amp;maptype=terrain&amp;language=en-EN&amp;sensor=false</code></pre>
+<pre><code>## Information from URL : http://maps.googleapis.com/maps/api/geocode/json?address=The%20Hill%20Pittsburgh,%20PA&amp;sensor=false</code></pre>
+<pre class="r"><code>pgh_map &lt;- ggmap(pgh_map)
+
+pgh_map +
+  geom_point(data = df_station_totals, aes(longitude, latitude, size = number_of_trips),
+             alpha = .75) +
+  scale_size_continuous(range = c(.1, 5)) +
+  theme_minimal() +
+  theme(axis.text = element_blank(),
+        axis.title = element_blank())</code></pre>
+<pre><code>## Warning: Removed 33 rows containing missing values (geom_point).</code></pre>
+<p><img src="/post/2017-11-04-mapping-healthy-ride-data_files/figure-html/unnamed-chunk-1-1.png" width="672" /></p>
+<p>df_long &lt;- data_long %&gt;% select(station_name, station_name_type) %&gt;% group_by(station_name, station_name_type) %&gt;% summarize(number_of_trips = n()) %&gt;% arrange(desc(number_of_trips)) %&gt;% left_join(data_station_locations)</p>
+<p>df_from_to &lt;- df_long %&gt;% spread(station_name_type, number_of_trips) %&gt;% rename(from_trips = from_station_name, to_trips = to_station_name) %&gt;% select(from_trips, to_trips) %&gt;% mutate(differential = abs(from_trips - to_trips))</p>
+<div id="section-use-the-stations-with-large-differentials-as-jumping-off-points-in-the-network-map" class="section level1">
+<h1>use the stations with large differentials as jumping off points in the network map</h1>
+<p>df_from_to %&gt;% gghighlight_point(aes(from_trips, to_trips), label_key = station_name, differential &gt; 4000) + scale_x_continuous(limits = c(0, 45000)) + scale_y_continuous(limits = c(0, 45000)) + coord_equal() + geom_abline() + theme_bw()</p>
+<p>pgh_map + geom_point(data = df_long, aes(longitude, latitude, size = number_of_trips, color = station_name_type), alpha = .75) + scale_size_continuous(range = c(.1, 5)) + facet_wrap(~station_name_type) + theme_minimal() + theme(axis.text = element_blank(), axis.title = element_blank())</p>
+<p>df_wide &lt;- data_long %&gt;% spread(station_name_type, station_name) %&gt;% select(from_station_name, to_station_name) %&gt;% filter(from_station_name != to_station_name) %&gt;% left_join(data_station_locations, by = c(“from_station_name” = “station_name”)) %&gt;% rename(from_latitude = latitude, from_longitude = longitude) %&gt;% left_join(data_station_locations, by = c(“to_station_name” = “station_name”)) %&gt;% rename(to_latitude = latitude, to_longitude = longitude) %&gt;% group_by(from_station_name, to_station_name, from_longitude, from_latitude, to_longitude, to_latitude) %&gt;% summarise(number_of_trips = n()) %&gt;% arrange(desc(number_of_trips)) %&gt;% mutate(from_station_type = ifelse(from_station_name == to_station_name, “Same station”, “Different station”))</p>
+</div>
+<div id="section-to-from-map" class="section level1">
+<h1>to-from map</h1>
+<p>pgh_map + geom_point(data = df_wide, aes(from_longitude, from_latitude)) + geom_point(data = df_wide, aes(to_longitude, to_latitude)) + geom_segment(data = df_wide, aes(x = from_longitude, xend = to_longitude, y = from_latitude, yend = to_latitude, alpha = number_of_trips, size = number_of_trips)) + scale_alpha_continuous(range = c(.05, .3)) + scale_size_continuous(range = c(.05, 3)) + #facet_wrap(~from_station_name) + theme_minimal() + theme(axis.text = element_blank(), axis.title = element_blank()) ggsave(“images/ride_map.png”)</p>
+<p>top_from_stations &lt;- df_wide %&gt;% group_by(from_station_name) %&gt;% summarize(number_of_trips = sum(number_of_trips)) %&gt;% arrange(desc(number_of_trips)) %&gt;% top_n(6) %&gt;% select(from_station_name) %&gt;% unlist()</p>
+<p>df_wide_specific_station &lt;- df_wide %&gt;% filter(from_station_name %in% top_from_stations)</p>
+<p>pgh_map + geom_point(data = df_wide_specific_station, aes(from_longitude, from_latitude), show.legend = FALSE) + geom_point(data = df_wide_specific_station, aes(to_longitude, to_latitude), shape = 1, size = 5, show.legend = FALSE) + geom_segment(data = df_wide_specific_station, aes(x = from_longitude, xend = to_longitude, y = from_latitude, yend = to_latitude, alpha = number_of_trips, size = number_of_trips), arrow = arrow(length = unit(0.03, “npc”))) + scale_alpha_continuous(range = c(.3, .5)) + scale_size_continuous(range = c(.05, 3)) + facet_wrap(~from_station_name, ncol = 3) + theme_minimal() + theme(axis.text = element_blank(), axis.title = element_blank())</p>
+<p>df_wide_day &lt;- data_long %&gt;% spread(station_name_type, station_name) %&gt;% select(from_station_name, to_station_name, is_weekday) %&gt;% filter(from_station_name != to_station_name) %&gt;% left_join(data_station_locations, by = c(“from_station_name” = “station_name”)) %&gt;% rename(from_latitude = latitude, from_longitude = longitude) %&gt;% left_join(data_station_locations, by = c(“to_station_name” = “station_name”)) %&gt;% rename(to_latitude = latitude, to_longitude = longitude) %&gt;% group_by(is_weekday, from_station_name, to_station_name, from_longitude, from_latitude, to_longitude, to_latitude) %&gt;% summarise(number_of_trips = n()) %&gt;% arrange(desc(number_of_trips))</p>
+<p>pgh_map + geom_point(data = df_wide_day, aes(from_longitude, from_latitude)) + geom_point(data = df_wide_day, aes(to_longitude, to_latitude)) + geom_segment(data = df_wide, aes(x = from_longitude, xend = to_longitude, y = from_latitude, yend = to_latitude, alpha = number_of_trips, size = number_of_trips)) + scale_alpha_continuous(range = c(.05, .3)) + scale_size_continuous(range = c(.05, 3)) + facet_wrap(~is_weekday) + theme_minimal() + theme(axis.text = element_blank(), axis.title = element_blank())</p>
+<p>df_wide_tod &lt;- data_long %&gt;% spread(station_name_type, station_name) %&gt;% select(from_station_name, to_station_name, hour) %&gt;% filter(from_station_name != to_station_name) %&gt;% mutate(time_of_day = cut(hour, breaks = c(-Inf, 3, 6, 9, 12, 15, 18, 21, Inf), labels = c(“0-3”, “3-6”, “6-9”, “9-12”, “12-15”, “15-18”, “18-21”, “21-24”), ordered_result = TRUE)) %&gt;% left_join(data_station_locations, by = c(“from_station_name” = “station_name”)) %&gt;% rename(from_latitude = latitude, from_longitude = longitude) %&gt;% left_join(data_station_locations, by = c(“to_station_name” = “station_name”)) %&gt;% rename(to_latitude = latitude, to_longitude = longitude) %&gt;% group_by(time_of_day, from_station_name, to_station_name, from_longitude, from_latitude, to_longitude, to_latitude) %&gt;% summarise(number_of_trips = n()) %&gt;% arrange(desc(number_of_trips))</p>
+<p>pgh_map + geom_point(data = df_wide_tod, aes(from_longitude, from_latitude)) + geom_point(data = df_wide_tod, aes(to_longitude, to_latitude)) + geom_segment(data = df_wide_tod, aes(x = from_longitude, xend = to_longitude, y = from_latitude, yend = to_latitude, alpha = number_of_trips, size = number_of_trips)) + scale_alpha_continuous(range = c(.05, .3)) + scale_size_continuous(range = c(.05, 3)) + facet_wrap(~time_of_day) + theme_minimal() + theme(axis.text = element_blank(), axis.title = element_blank())</p>
+</div>
