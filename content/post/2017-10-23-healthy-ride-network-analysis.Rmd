@@ -1,7 +1,7 @@
 ---
 title: Healthy Ride Network Analysis
 author: Conor Tompkins
-date: '2017-10-23'
+date: '2017-11-05'
 slug: healthy-ride-network-analysis
 categories:
   - Pittsburgh
@@ -18,12 +18,12 @@ runtime: shiny
 options(scipen = 999)
 ```
 
-This post is about exploring the Healthy Ride dataset using network analysis. 
+This post explores the Healthy Ride dataset using network analysis. 
 
 This is my second post about the Healthy Ride bike service in Pittsburgh. You can find the first post [here](https://ctompkins.netlify.com/2017/10/18/exploring-healthy-ride-pittsburgh-data/), where I did some exploratory analysis of the data.
 
-Load the packages we will be using:
-```{r load packages, message=FALSE, warning=FALSE}
+Load the R packages we will be using:
+```{r load_packages, message=FALSE, warning=FALSE}
 library(tidyverse)
 library(ggraph)
 library(igraph)
@@ -45,7 +45,7 @@ data <- read_csv("https://raw.githubusercontent.com/conorotompkins/healthy_ride/
 
 
 Again, we need to format the data and the column names to make them more useful for analysis. Since this is a repeat of the script from the last post, I will just do it all in one go:
-```{r munge 1}
+```{r munge_data}
 colnames(data) <- tolower(colnames(data))
 colnames(data) <- gsub(" ", "_", colnames(data))
 
@@ -89,43 +89,40 @@ data_long <- data %>%
 ```
 
 Check that the data is OK:
-```{r preview data}
+```{r preview_data}
 data_long
 ```
 
 To make the data more useful for network analysis, we need to make it a bit wider:
-```{r make data wide}
+```{r make_data_wide}
 (data_wide <- data_long %>% 
   spread(station_name_type, station_name))
 ```
 
 Set the seed for the random number generator so the charts look the same every time they are run:
-```{r set seed}
+```{r set_seed}
 set.seed(12345)
 ```
 
-To start, lets look at the entire network:
-```{r message=FALSE, warning=FALSE}
-(simple_network <- data_wide %>% 
-  count(from_station_name, to_station_name, sort = TRUE))
+To start, lets look at the entire network. The loops indicate that the trip began and ended at the same station.
+```{r entire_network, message=FALSE, warning=FALSE}
+simple_network <- data_wide %>% 
+  count(from_station_name, to_station_name, sort = TRUE)
 
 simple_network <- simple_network %>% 
   graph_from_data_frame(directed = TRUE)
 
 ggraph(simple_network) +
-  geom_edge_fan(aes(edge_alpha = n,
-                    edge_width = n)) +
-  geom_edge_loop(aes(edge_alpha = n,
-                     edge_width = n)) +
+  geom_edge_fan(aes(edge_alpha = n)) +
+  geom_edge_loop(aes(edge_alpha = n)) +
   geom_node_point() +
-  scale_edge_alpha_continuous(range = c(.3, 1)) +
-  scale_edge_width_continuous(range = c(.5, 1))
+  scale_edge_alpha_continuous("Number of rides", range = c(.1, 1))
 ```
 
 This is a bit of a hairball, and is frankly not useful.
 
-Instead, lets look at how the network of stations with at least 150 connections looks
-```{r top 200, message=FALSE, warning=FALSE}
+Instead, lets look at how the network of stations with at least 150 connections looks.
+```{r top_stations_network, message=FALSE, warning=FALSE}
 simple_network <- data_wide %>% 
   count(from_station_name, to_station_name, sort = TRUE) %>% 
   filter(n >= 150)
@@ -134,42 +131,37 @@ simple_network <- simple_network %>%
   graph_from_data_frame(directed = TRUE)
 
 ggraph(simple_network) +
-  geom_edge_fan(aes(edge_alpha = n,
-                    edge_width = n)) +
-  geom_edge_loop(aes(edge_alpha = n,
-                     edge_width = n)) +
+  geom_edge_fan(aes(edge_alpha = n)) +
+  geom_edge_loop(aes(edge_alpha = n)) +
   geom_node_point() +
-  scale_edge_alpha_continuous(range = c(.3, 1)) +
-  scale_edge_width_continuous(range = c(.5, 1))
+  scale_edge_alpha_continuous("Number of rides", range = c(.1, 1))
 ```
 
 There appear to be two clusters of stations.
 
 We can also do a more traditional heatmap of the departure and arrival stations:
-```{r top 200 weekday, message=FALSE, warning=FALSE}
+```{r heatmap, message=FALSE, warning=FALSE}
 simple_network <- data_wide %>% 
-  #filter(from_station_name %in% top_from_stations,
-  #       to_station_name %in% top_to_stations) %>% 
   count(from_station_name, to_station_name, sort = TRUE) %>% 
   top_n(400) %>% 
   ungroup() %>% 
   complete(from_station_name, to_station_name) %>% 
   replace_na(list(n = 0)) %>% 
-  mutate(from_station_name_abbr = str_c(str_sub(from_station_name, 1, 18), "..."),
+  mutate(from_station_name_abbr = str_c(str_sub(from_station_name, 1, 18), "..."), #abbreviate the station names so they fit on the axes
          to_station_name_abbr = str_c(str_sub(to_station_name, 1, 18), "..."))
-#add complete and replace_na
 
-length(unique(simple_network$from_station_name) == unique(simple_network$from_station_name_abbr))
+#check that we aren't losing any station names
 length(unique(simple_network$to_station_name)) == length(unique(simple_network$to_station_name_abbr))
 
-
+#create vector for ordering the x axis
 x_axis <- simple_network %>% 
   group_by(from_station_name_abbr) %>% 
   summarize(n = sum(n)) %>% 
   arrange(desc(n)) %>%
   select(from_station_name_abbr) %>% 
   unlist()
-  
+
+#create vector for ordering the xyaxis  
 y_axis <- simple_network %>% 
   group_by(to_station_name_abbr) %>% 
   summarize(n = sum(n)) %>% 
@@ -185,9 +177,9 @@ simple_network %>%
   theme_bw() +
   coord_equal() +
   scale_fill_viridis() +
-  #scale_x_discrete(breaks = unique(simple_network$from_station_name_abbr)) +
   guides(fill = guide_colorbar(title = "Number of Rides")) +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0))
+  theme(axis.text = element_text(size = 6),
+        axis.text.x = element_text(angle = 90, vjust = 0))
 ```
 
 It appears that many trips start and end at the same station.
@@ -207,6 +199,8 @@ data_wide %>%
 ```
 27% of all trips end at the same station they began at.
 
+Does this pattern differ on weekdays vs. weekends?
+
 ```{r bar_plot}
 df_test <- data_wide %>% 
   select(from_station_name, to_station_name, is_weekday) %>% 
@@ -222,9 +216,11 @@ df_test <- data_wide %>%
 
 df_test %>% 
   ggplot(aes(is_weekday, n, fill = location_type)) +
-  geom_col(position = "dodge") +
+  geom_col(position = "dodge", color = "black") +
+  scale_y_continuous(labels = scales::percent) +
   labs(y = "% of rides",
-       title = "test") +
+       title = "") +
+  guides(fill = guide_legend(title = "Location Type")) +
   theme_bw()
 ```
 
@@ -241,51 +237,14 @@ simple_network <- simple_network %>%
 
 ggraph(simple_network) +
   geom_edge_fan(aes(edge_alpha = n,
-                    edge_width = n,
                     color = is_weekday)) +
   geom_edge_loop(aes(edge_alpha = n,
-                     edge_width = n,
                      color = is_weekday)) +
   geom_node_point() +
-  scale_edge_alpha_continuous(range = c(.3, 1)) +
-  scale_edge_width_continuous(range = c(.5, 1)) +
+  scale_edge_alpha_continuous("Number of rides", range = c(.3, 1)) +
+  scale_edge_color_discrete("Type of day") +
   facet_edges(~is_weekday) +
   th_foreground(foreground = 'grey80', border = TRUE)
 ```
 
 The network appears to be smaller and more compact on the weekends
-
-```{r time_of_day, message=FALSE, warning=FALSE}
-#add network chart split by weekday/weekend and time of day (early morning, midday, evening, night)
-#cut hour column
-simple_network <- data_wide %>% 
-  mutate(time_of_day = cut(hour, breaks = c(-Inf, 3, 6, 9, 12, 15, 18, 21, Inf), 
-                           labels = c("0-3", "3-6", "6-9", "9-12", "12-15", "15-18", "18-21", "21-24"), 
-                           ordered_result = TRUE)) %>% 
-  count(from_station_name, to_station_name, time_of_day, sort = TRUE) %>% 
-  filter(n > 150) #%>% 
-  #mutate(time_of_day = factor(time_of_day, levels = c("0-3", "3-6", "6-9", "9-12", "12-15", "15-18", "18-21", "21-24")))
-
-#sum(is.na(simple_network))
-#str(simple_network)
-
-simple_network <- simple_network %>% 
-  graph_from_data_frame(directed = TRUE)
-#str(simple_network)
-
-ggraph(simple_network) +
-  geom_edge_fan(aes(edge_alpha = n,
-                    edge_width = n)) +
-  geom_edge_loop(aes(edge_alpha = n,
-                     edge_width = n)) +
-  geom_node_point() +
-  scale_edge_alpha_continuous(range = c(.3, 1)) +
-  scale_edge_width_continuous(range = c(.5, 1)) +
-  #facet_graph(is_weekday ~ time_of_day) +
-  #facet_edges(~is_weekday) +
-  facet_edges(~ time_of_day,
-              ncol = 2) +
-  th_foreground(foreground = 'grey80', border = TRUE)
-#faceting not working
-#warnings()
-```
