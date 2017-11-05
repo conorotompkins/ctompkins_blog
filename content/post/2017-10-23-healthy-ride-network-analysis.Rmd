@@ -18,11 +18,11 @@ runtime: shiny
 options(scipen = 999)
 ```
 
-This post explores the Healthy Ride dataset using network analysis. 
+This post explores the Healthy Ride dataset using network analysis in R. 
 
 This is my second post about the Healthy Ride bike service in Pittsburgh. You can find the first post [here](https://ctompkins.netlify.com/2017/10/18/exploring-healthy-ride-pittsburgh-data/), where I did some exploratory analysis of the data.
 
-Load the R packages we will be using:
+First, load the R packages we will be using:
 ```{r load_packages, message=FALSE, warning=FALSE}
 library(tidyverse)
 library(ggraph)
@@ -30,19 +30,23 @@ library(igraph)
 library(lubridate)
 library(viridis)
 library(stringr)
+library(knitr)
 ```
 
-
-Set the theme to format the plots:
+Then set the theme to format the plots:
 ```{r set theme}
 theme_set(theme_graph())
+```
+
+Set the seed for the random number generator so the charts look the same every time they are run:
+```{r set_seed}
+set.seed(12345)
 ```
 
 Load the data from the WPRDC (hosted on [my GitHub page](https://github.com/conorotompkins)):
 ```{r load data}
 data <- read_csv("https://raw.githubusercontent.com/conorotompkins/healthy_ride/master/data/data.csv")
 ```
-
 
 Again, we need to format the data and the column names to make them more useful for analysis. Since this is a repeat of the script from the last post, I will just do it all in one go:
 ```{r munge_data}
@@ -88,20 +92,20 @@ data_long <- data %>%
          everything())
 ```
 
-Check that the data is OK:
-```{r preview_data}
-data_long
+The data is currently arrange "long", which means that the data that shows where a trip started and ended are in the same column (station_name_type)
+```{r describe_long_data}
+unique(data_long$station_name_type)
 ```
 
-To make the data more useful for network analysis, we need to make it a bit wider:
+This makes analyzing where a trip started and ended difficult.
+
+To make the data more useful for network analysis, we need to make it a bit wider. This code splits the contents of the station_name_type column into two separate columns: from_station_name and to_station_name.
 ```{r make_data_wide}
-(data_wide <- data_long %>% 
-  spread(station_name_type, station_name))
-```
+data_wide <- data_long %>% 
+  spread(station_name_type, station_name) %>% 
+   select(from_station_name, to_station_name, everything())
 
-Set the seed for the random number generator so the charts look the same every time they are run:
-```{r set_seed}
-set.seed(12345)
+kable(data_wide[1:10, 1:5])
 ```
 
 To start, lets look at the entire network. The loops indicate that the trip began and ended at the same station.
@@ -138,6 +142,25 @@ ggraph(simple_network) +
 ```
 
 There appear to be two clusters of stations.
+
+How does the network appear without trips that start and end at the same station?
+```{r top_stations_network_no_loop, message=FALSE, warning=FALSE}
+simple_network <- data_wide %>% 
+  count(from_station_name, to_station_name, sort = TRUE) %>% 
+  filter(n >= 150,
+         from_station_name != to_station_name)
+
+simple_network <- simple_network %>% 
+  graph_from_data_frame(directed = TRUE)
+
+ggraph(simple_network) +
+  geom_edge_fan(aes(edge_alpha = n)) +
+  geom_edge_loop(aes(edge_alpha = n)) +
+  geom_node_point() +
+  scale_edge_alpha_continuous("Number of rides", range = c(.1, 1))
+```
+
+The two clusters stand out more in this view.
 
 We can also do a more traditional heatmap of the departure and arrival stations:
 ```{r heatmap, message=FALSE, warning=FALSE}
@@ -225,6 +248,8 @@ df_test %>%
 ```
 
 A greater percentage of trips start and end at the same station on the weekends than on weekdays
+
+#talk about people driving to bike stations near trails, going for a ride, and then returning to the same station
 
 Does the network look different on weekdays vs. weekends?
 ```{r top_200_weekday, message=FALSE, warning=FALSE}
