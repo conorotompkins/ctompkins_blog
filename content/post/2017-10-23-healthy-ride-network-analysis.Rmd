@@ -10,8 +10,7 @@ tags:
   - Pittsburgh
   - WPRDC
   - Healthy Ride
-draft: true
-runtime: shiny
+draft: false
 ---
 
 ```{r initial options, message=FALSE, warning=FALSE, include=FALSE}
@@ -31,6 +30,7 @@ library(lubridate)
 library(viridis)
 library(stringr)
 library(knitr)
+library(kableExtra)
 ```
 
 Then set the theme to format the plots:
@@ -92,9 +92,17 @@ data_long <- data %>%
          everything())
 ```
 
-The data is currently arrange "long", which means that the data that shows where a trip started and ended are in the same column (station_name_type)
+The data is currently arranged to be "long", which means that the data that shows where a trip started and ended are in the same column (station_name_type)
 ```{r describe_long_data}
 unique(data_long$station_name_type)
+```
+
+```{r view_data_long}
+data_long %>% 
+  select(station_name_type, station_name, date_time_2) %>% 
+  head() %>% 
+  kable("html") %>% 
+  kable_styling()
 ```
 
 This makes analyzing where a trip started and ended difficult.
@@ -105,7 +113,9 @@ data_wide <- data_long %>%
   spread(station_name_type, station_name) %>% 
    select(from_station_name, to_station_name, everything())
 
-kable(data_wide[1:10, 1:5])
+data_wide[1:10, 1:3] %>% 
+  kable("html") %>% 
+  kable_styling()
 ```
 
 To start, lets look at the entire network. The loops indicate that the trip began and ended at the same station.
@@ -184,7 +194,7 @@ x_axis <- simple_network %>%
   select(from_station_name_abbr) %>% 
   unlist()
 
-#create vector for ordering the xyaxis  
+#create vector for ordering the yaxis  
 y_axis <- simple_network %>% 
   group_by(to_station_name_abbr) %>% 
   summarize(n = sum(n)) %>% 
@@ -216,9 +226,10 @@ data_wide %>%
   count() %>% 
   spread(is_same, n) %>% 
   gather(location_type, n) %>% 
-  mutate(from_location = "from_location") %>% 
-  select(from_location, location_type, n) %>% 
-  mutate(n = round(n / sum(n), digits = 2))
+  select(location_type, n) %>% 
+  mutate(n = round(n / sum(n), digits = 2)) %>% 
+  kable("html") %>% 
+  kable_styling()
 ```
 27% of all trips end at the same station they began at.
 
@@ -247,9 +258,7 @@ df_test %>%
   theme_bw()
 ```
 
-A greater percentage of trips start and end at the same station on the weekends than on weekdays
-
-#talk about people driving to bike stations near trails, going for a ride, and then returning to the same station
+A greater percentage of trips start and end at the same station on the weekends than on weekdays. This could be caused by people commuting to bike stations via car, going for a ride on a bike trail, and then returning to the same station.
 
 Does the network look different on weekdays vs. weekends?
 ```{r top_200_weekday, message=FALSE, warning=FALSE}
@@ -272,4 +281,4 @@ ggraph(simple_network) +
   th_foreground(foreground = 'grey80', border = TRUE)
 ```
 
-The network appears to be smaller and more compact on the weekends
+The secondary cluster (on the bottom right) appears to be less connected on weekends
