@@ -149,7 +149,8 @@ df_from_to <- df_long %>%
   mutate(differential = abs(from_trips - to_trips))
 
 #use the stations with large differentials as jumping off points in the network map
-gghighlight_point(df_from_to, aes(from_trips, to_trips), label_key = station_name, differential > 4000) +
+df_from_to %>% 
+  gghighlight_point(aes(from_trips, to_trips), label_key = station_name, differential > 4000) +
   scale_x_continuous(limits = c(0, 45000)) +
   scale_y_continuous(limits = c(0, 45000)) +
   coord_equal() +
