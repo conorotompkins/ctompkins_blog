@@ -79,7 +79,7 @@ data_long <- data %>%
 
 Importantly, we will be excluding trips where the rider started and ended their trip at the same station from this analysis. The data lacks the granularity to analyze rider location beyond the points where they began and ended their trip.
 
-```{r}
+```{r filter_data}
 data_long <- data_long %>% 
   spread(station_name_type, station_name) %>% 
   filter(from_station_name != to_station_name) %>% 
@@ -101,7 +101,7 @@ data_station_locations <- read_csv("https://raw.githubusercontent.com/conorotomp
 ```
 
 Where are the Healthy Ride Stations?
-```{r}
+```{r _first_map}
 pgh_map <- get_map(location = "The Hill Pittsburgh, PA", zoom = 13)
 pgh_map <- ggmap(pgh_map)
 
@@ -115,7 +115,7 @@ pgh_map +
 ```
 
 Create a dataframe with station name, number of rides, and longitude and latitude.
-```{r}
+```{r create_location_df}
 df_long <- data_long %>% 
   select(station_name, station_name_type) %>% 
   group_by(station_name, station_name_type) %>% 
@@ -126,7 +126,7 @@ df_long <- data_long %>%
 ```
 
 Do some stations function more as starting points or ending points for trips?
-```{r}
+```{r from_to_map}
 pgh_map +
   geom_point(data = df_long, aes(longitude, latitude, size = number_of_trips, color = station_name_type),
              alpha = .75) +
@@ -140,7 +140,7 @@ pgh_map +
 No differences are discernible in this view.
 
 A scatter plot shows the differences more effectively:
-```{r}
+```{r scatter_plot}
 df_from_to <- df_long %>%
   spread(station_name_type, number_of_trips) %>% 
   rename(from_trips = from_station_name,
@@ -149,8 +149,7 @@ df_from_to <- df_long %>%
   mutate(differential = abs(from_trips - to_trips))
 
 #use the stations with large differentials as jumping off points in the network map
-df_from_to %>% 
-  gghighlight_point(aes(from_trips, to_trips), label_key = station_name, differential > 4000) +
+gghighlight_point(df_from_to, aes(from_trips, to_trips), label_key = station_name, differential > 4000) +
   scale_x_continuous(limits = c(0, 45000)) +
   scale_y_continuous(limits = c(0, 45000)) +
   coord_equal() +
@@ -158,7 +157,7 @@ df_from_to %>%
   theme_bw()
 ```
 The top 10 stations in terms of absolute difference between departures and arrivals:
-```{r}
+```{r abs_difference}
 df_from_to %>% 
   ungroup() %>% 
   arrange(desc(differential)) %>% 
@@ -168,7 +167,7 @@ df_from_to %>%
 Let's map the connections between stations by drawing lines between the stations.
 
 First, widen the data:
-```{r}
+```{r widen_data}
 df_wide <- data_long %>%
   spread(station_name_type, station_name) %>% 
   select(from_station_name, to_station_name) %>% 
@@ -186,8 +185,7 @@ df_wide <- data_long %>%
 ```
 
 Then, layer the data over the map:
-```{r}
-#to-from map
+```{r to_from_map}
 pgh_map +
   geom_segment(data = df_wide, aes(x = from_longitude, xend = to_longitude, 
                                    y = from_latitude, yend = to_latitude, 
@@ -204,7 +202,7 @@ pgh_map +
 ```
 
 We can also facet by the from_station_name variable to see where trips originating from certain stations end at. This plot shows the top 6 stations in terms of trips that began from that station:
-```{r}
+```{r top_from_stations_map}
 top_from_stations <- df_wide %>% 
   group_by(from_station_name) %>% 
   summarize(number_of_trips = sum(number_of_trips)) %>% 
@@ -237,7 +235,7 @@ pgh_map +
 
 
 looking at top stations in terms of absolute difference
-```{r}
+```{r top_diff_stations_map}
 top_diff_stations <- df_from_to %>% 
   arrange(desc(differential)) %>% 
   top_n(10) %>% 
@@ -269,7 +267,7 @@ pgh_map +
 
 
 
-```{r}
+```{r to_from_wday_map}
 df_wide_day <- data_long %>% 
   spread(station_name_type, station_name) %>% 
   select(from_station_name, to_station_name, is_weekday) %>% 
@@ -297,7 +295,7 @@ pgh_map +
         axis.title = element_blank())
 ```
 
-```{r}
+```{r to_from_tod_map}
 df_wide_tod <- data_long %>% 
   spread(station_name_type, station_name) %>% 
   select(from_station_name, to_station_name, hour) %>% 
