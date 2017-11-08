@@ -145,7 +145,7 @@ df_from_to <- df_long %>%
   spread(station_name_type, number_of_trips) %>% 
   rename(from_trips = from_station_name,
          to_trips = to_station_name) %>% 
-  select(from_trips, to_trips) %>% 
+  select(station_name, from_trips, to_trips) %>% 
   mutate(differential = abs(from_trips - to_trips))
 
 #use the stations with large differentials as jumping off points in the network map
