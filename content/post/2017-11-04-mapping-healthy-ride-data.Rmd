@@ -121,7 +121,8 @@ df_long <- data_long %>%
   group_by(station_name, station_name_type) %>% 
   summarize(number_of_trips = n()) %>% 
   arrange(desc(number_of_trips)) %>% 
-  left_join(data_station_locations)
+  left_join(data_station_locations) %>% 
+  ungroup()
 ```
 
 Do some stations function more as starting points or ending points for trips?
@@ -140,7 +141,7 @@ No differences are discernible in this view.
 
 A scatter plot shows the differences more effectively:
 ```{r}
-df_from_to <- df_long %>% 
+df_from_to <- df_long %>%
   spread(station_name_type, number_of_trips) %>% 
   rename(from_trips = from_station_name,
          to_trips = to_station_name) %>% 
@@ -159,8 +160,9 @@ df_from_to %>%
 The top 10 stations in terms of absolute difference between departures and arrivals:
 ```{r}
 df_from_to %>% 
+  ungroup() %>% 
   arrange(desc(differential)) %>% 
-  top_n(10)
+  top_n(10, differential)
 ```
 
 Let's map the connections between stations by drawing lines between the stations.
