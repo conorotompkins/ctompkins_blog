@@ -190,11 +190,11 @@ Then, layer the data over the map:
 pgh_map +
   geom_segment(data = df_wide, aes(x = from_longitude, xend = to_longitude, 
                                    y = from_latitude, yend = to_latitude, 
-                                   alpha = number_of_trips, size = number_of_trips)) +
+                                   alpha = number_of_trips)) +
   geom_point(data = df_wide, aes(from_longitude, from_latitude), shape = 21, size = 3, fill = "white") +
   geom_point(data = df_wide, aes(to_longitude, to_latitude), shape = 21, size = 3, fill = "white") +
-  scale_alpha_continuous(range = c(.05, .3)) +
-  scale_size_continuous(range = c(.05, 3)) +
+  scale_alpha_continuous(range = c(.0001, 1)) +
+  #scale_size_continuous(range = c(.05, 3)) +
   #facet_wrap(~from_station_name) +
   theme_minimal() +
   theme(axis.text = element_blank(),
@@ -217,16 +217,15 @@ df_wide_specific_station <- df_wide %>%
   filter(from_station_name %in% top_from_stations)
 
 pgh_map +
+  geom_segment(data = df_wide_specific_station, aes(x = from_longitude, xend = to_longitude, 
+                                   y = from_latitude, yend = to_latitude, 
+                                   alpha = number_of_trips), arrow = arrow(length = unit(0.03, "npc"))) +
   geom_point(data = df_wide_specific_station, aes(from_longitude, from_latitude), 
              shape = 21, size = 3, fill = "white") +
   geom_point(data = df_wide_specific_station, aes(to_longitude, to_latitude), 
              shape = 21, size = 3, fill = "white") +
-  geom_segment(data = df_wide_specific_station, aes(x = from_longitude, xend = to_longitude, 
-                                   y = from_latitude, yend = to_latitude, 
-                                   alpha = number_of_trips, size = number_of_trips),
-               arrow = arrow(length = unit(0.03, "npc"))) +
-  scale_alpha_continuous(range = c(.3, .5)) +
-  scale_size_continuous(range = c(.05, 3)) +
+  scale_alpha_continuous(range = c(.1, 1)) +
+  #scale_size_continuous(range = c(.05, 3)) +
   facet_wrap(~from_station_name,
              ncol = 3) +
   theme_minimal() +
@@ -255,10 +254,10 @@ pgh_map +
              shape = 21, size = 3, fill = "white") +
   geom_segment(data = df_wide_diff_station, aes(x = from_longitude, xend = to_longitude, 
                                    y = from_latitude, yend = to_latitude, 
-                                   alpha = number_of_trips, size = number_of_trips),
+                                   alpha = number_of_trips),
                arrow = arrow(length = unit(0.03, "npc"))) +
-  scale_alpha_continuous(range = c(.3, .5)) +
-  scale_size_continuous(range = c(.05, 3)) +
+  scale_alpha_continuous(range = c(.1, 1)) +
+  #scale_size_continuous(range = c(.05, 3)) +
   facet_wrap(~from_station_name,
              ncol = 3) +
   theme_minimal() +
@@ -285,11 +284,11 @@ df_wide_day <- data_long %>%
 pgh_map +
   geom_segment(data = df_wide_day, aes(x = from_longitude, xend = to_longitude, 
                                    y = from_latitude, yend = to_latitude, 
-                                   alpha = number_of_trips, size = number_of_trips)) +
+                                   alpha = number_of_trips)) +
   geom_point(data = df_wide_day, aes(from_longitude, from_latitude), shape = 21, size = 3, fill = "white") +
   geom_point(data = df_wide_day, aes(to_longitude, to_latitude), shape = 21, size = 3, fill = "white") +
   scale_alpha_continuous(range = c(.05, .3)) +
-  scale_size_continuous(range = c(.05, 3)) +
+  #scale_size_continuous(range = c(.05, 3)) +
   facet_wrap(~is_weekday) +
   theme_minimal() +
   theme(axis.text = element_blank(),
@@ -318,11 +317,11 @@ df_wide_tod <- data_long %>%
 pgh_map +
   geom_segment(data = df_wide_tod, aes(x = from_longitude, xend = to_longitude, 
                                    y = from_latitude, yend = to_latitude, 
-                                   alpha = number_of_trips, size = number_of_trips)) +
+                                   alpha = number_of_trips)) +
   geom_point(data = df_wide_tod, aes(from_longitude, from_latitude), shape = 21, size = 2, fill = "white") +
   geom_point(data = df_wide_tod, aes(to_longitude, to_latitude), shape = 21, size = 2, fill = "white") +
   scale_alpha_continuous(range = c(.05, .3)) +
-  scale_size_continuous(range = c(.05, 3)) +
+  #scale_size_continuous(range = c(.05, 3)) +
   facet_wrap(~time_of_day) +
   theme_minimal() +
   theme(axis.text = element_blank(),
