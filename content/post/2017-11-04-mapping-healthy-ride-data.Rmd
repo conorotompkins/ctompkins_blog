@@ -14,11 +14,11 @@ tags:
 runtime: shiny
 ---
 
-This post explores the Healthy Ride dataset using network analysis. 
+This post is about mapping the Healthy Ride dataset in R.
 
 This is my third post about the Healthy Ride bike service in Pittsburgh. You can find the [first post](https://ctompkins.netlify.com/2017/10/18/exploring-healthy-ride-pittsburgh-data/) and [second post](http://ctompkins.netlify.com/2017/11/05/healthy-ride-network-analysis/) on my blog.
 
-Load the R packages we will be using:
+First, load the R packages we will be using:
 ```{r load_packages, message=FALSE, warning=FALSE}
 library(tidyverse)
 library(ggmap)
@@ -26,9 +26,10 @@ library(lubridate)
 library(viridis)
 library(stringr)
 library(gghighlight)
+library(knitr)
 ```
 
-Load the data from the WPRDC (hosted on [my GitHub page](https://github.com/conorotompkins)):
+Then load the data from the [WPRDC](https://data.wprdc.org/organization/healthy-ride) (hosted on [my GitHub page](https://github.com/conorotompkins)):
 ```{r load data, message=FALSE, warning=FALSE}
 data <- read_csv("https://raw.githubusercontent.com/conorotompkins/healthy_ride/master/data/data.csv")
 ```
@@ -92,16 +93,20 @@ data_station_locations <- read_csv("https://raw.githubusercontent.com/conorotomp
 ```
 
 ```{r munge_station_location_data, message=FALSE, warning=FALSE}
-(df_station_totals <- data_long %>% 
+df_station_totals <- data_long %>% 
   group_by(station_name) %>% 
   summarize(number_of_trips = n()) %>% 
   arrange(desc(number_of_trips), station_name) %>% 
   left_join(data_station_locations) %>% 
-  select(station_name, number_of_trips, longitude, latitude))
+  select(station_name, number_of_trips, longitude, latitude)
+
+df_station_totals %>% 
+  head() %>%
+  kable()
 ```
 
 Where are the Healthy Ride Stations?
-```{r _first_map}
+```{r _first_map, message=FALSE, warning=FALSE}
 pgh_map <- get_map(location = "The Hill Pittsburgh, PA", zoom = 13)
 pgh_map <- ggmap(pgh_map)
 
@@ -114,7 +119,7 @@ pgh_map +
         axis.title = element_blank())
 ```
 
-Create a dataframe with station name, number of rides, and longitude and latitude.
+Next, join the dataframe with the table containing longitude and latitude for the stations:
 ```{r create_location_df}
 df_long <- data_long %>% 
   select(station_name, station_name_type) %>% 
@@ -126,7 +131,7 @@ df_long <- data_long %>%
 ```
 
 Do some stations function more as starting points or ending points for trips?
-```{r from_to_map}
+```{r from_to_map, message=FALSE, warning=FALSE}
 pgh_map +
   geom_point(data = df_long, aes(longitude, latitude, size = number_of_trips, color = station_name_type),
              alpha = .75) +
@@ -140,7 +145,7 @@ pgh_map +
 No differences are discernible in this view.
 
 A scatter plot shows the differences more effectively:
-```{r scatter_plot}
+```{r scatter_plot, message=FALSE, warning=FALSE}
 df_from_to <- df_long %>%
   spread(station_name_type, number_of_trips) %>% 
   rename(from_trips = from_station_name,
@@ -162,7 +167,8 @@ The top 10 stations in terms of absolute difference between departures and arriv
 df_from_to %>% 
   ungroup() %>% 
   arrange(desc(differential)) %>% 
-  top_n(10, differential)
+  top_n(10, differential) %>% 
+  kable()
 ```
 
 Let's map the connections between stations by drawing lines between the stations.
@@ -186,7 +192,7 @@ df_wide <- data_long %>%
 ```
 
 Then, layer the data over the map:
-```{r to_from_map}
+```{r to_from_map, message=FALSE, warning=FALSE}
 pgh_map +
   geom_segment(data = df_wide, aes(x = from_longitude, xend = to_longitude, 
                                    y = from_latitude, yend = to_latitude, 
@@ -203,7 +209,7 @@ pgh_map +
 ```
 
 We can also facet by the from_station_name variable to see where trips originating from certain stations end at. This plot shows the top 6 stations in terms of trips that began from that station:
-```{r top_from_stations_map}
+```{r top_from_stations_map, message=FALSE, warning=FALSE}
 top_from_stations <- df_wide %>% 
   group_by(from_station_name) %>% 
   summarize(number_of_trips = sum(number_of_trips)) %>% 
@@ -211,7 +217,9 @@ top_from_stations <- df_wide %>%
   top_n(6) %>% 
   select(from_station_name) %>% 
   unlist()
-top_from_stations
+
+top_from_stations %>% 
+  kable()
 
 df_wide_specific_station <- df_wide %>% 
   filter(from_station_name %in% top_from_stations)
@@ -221,11 +229,10 @@ pgh_map +
                                    y = from_latitude, yend = to_latitude, 
                                    alpha = number_of_trips), arrow = arrow(length = unit(0.03, "npc"))) +
   geom_point(data = df_wide_specific_station, aes(from_longitude, from_latitude), 
-             shape = 21, size = 3, fill = "white") +
+             shape = 1, size = 2) +
   geom_point(data = df_wide_specific_station, aes(to_longitude, to_latitude), 
-             shape = 21, size = 3, fill = "white") +
+             shape = 1, size = 2) +
   scale_alpha_continuous(range = c(.1, 1)) +
-  #scale_size_continuous(range = c(.05, 3)) +
   facet_wrap(~from_station_name,
              ncol = 3) +
   theme_minimal() +
@@ -233,25 +240,25 @@ pgh_map +
         axis.title = element_blank())
 ```
 
-
-looking at top stations in terms of absolute difference
-```{r top_diff_stations_map}
+We can use the same method to examine the top stations in terms of absolute difference between departing and arriving rides:
+```{r top_diff_stations_map, message=FALSE, warning=FALSE}
 top_diff_stations <- df_from_to %>% 
   arrange(desc(differential)) %>% 
   top_n(10) %>% 
   select(station_name) %>% 
   unlist()
   
-top_diff_stations
+top_diff_stations %>% 
+  kable()
 
 df_wide_diff_station <- df_wide %>% 
   filter(from_station_name %in% top_diff_stations)
 
 pgh_map +
   geom_point(data = df_wide_diff_station, aes(from_longitude, from_latitude), 
-             shape = 21, size = 3, fill = "white") +
+             shape = 1, size = 2) +
   geom_point(data = df_wide_diff_station, aes(to_longitude, to_latitude), 
-             shape = 21, size = 3, fill = "white") +
+             shape = 1, size = 2) +
   geom_segment(data = df_wide_diff_station, aes(x = from_longitude, xend = to_longitude, 
                                    y = from_latitude, yend = to_latitude, 
                                    alpha = number_of_trips),
@@ -265,9 +272,8 @@ pgh_map +
         axis.title = element_blank())
 ```
 
-
-
-```{r to_from_wday_map}
+There does not appear to be a stark difference in the way the network behaves on weekdays vs. weekends:
+```{r to_from_wday_map, message=FALSE, warning=FALSE}
 df_wide_day <- data_long %>% 
   spread(station_name_type, station_name) %>% 
   select(from_station_name, to_station_name, is_weekday) %>% 
@@ -295,7 +301,8 @@ pgh_map +
         axis.title = element_blank())
 ```
 
-```{r to_from_tod_map}
+There are clear differences in the number of rides across different times of day, but the geographic pattern of departures and arrivals does not appear to change:
+```{r to_from_tod_map, message=FALSE, warning=FALSE}
 df_wide_tod <- data_long %>% 
   spread(station_name_type, station_name) %>% 
   select(from_station_name, to_station_name, hour) %>% 
@@ -321,7 +328,6 @@ pgh_map +
   geom_point(data = df_wide_tod, aes(from_longitude, from_latitude), shape = 21, size = 2, fill = "white") +
   geom_point(data = df_wide_tod, aes(to_longitude, to_latitude), shape = 21, size = 2, fill = "white") +
   scale_alpha_continuous(range = c(.05, .3)) +
-  #scale_size_continuous(range = c(.05, 3)) +
   facet_wrap(~time_of_day) +
   theme_minimal() +
   theme(axis.text = element_blank(),
