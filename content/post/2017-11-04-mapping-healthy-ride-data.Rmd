@@ -1,16 +1,16 @@
 ---
-title: Mapping Healthy Ride Data
-author: Conor Tompkins
+title: "Mapping Healthy Ride Data"
+author: "Conor Tompkins"
 date: '2017-11-12'
 slug: mapping-healthy-ride-data
-categories:
-  - Pittsburgh
-  - R
 tags:
-  - Healthy Ride
-  - Pittsburgh
-  - R Markdown
-  - WPRDC
+- Healthy Ride
+- Pittsburgh
+- R Markdown
+- WPRDC
+categories:
+- Pittsburgh
+- R
 ---
 
 This post is about mapping the Healthy Ride dataset in R.
@@ -266,8 +266,6 @@ top_diff_stations <- df_from_to %>%
   select(station_name) %>% 
   unlist()
   
-top_diff_stations
-
 df_wide_diff_station <- df_wide %>% 
   filter(from_station_name %in% top_diff_stations)
 
