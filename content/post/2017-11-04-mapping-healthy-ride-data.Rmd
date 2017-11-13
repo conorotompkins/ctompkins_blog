@@ -26,6 +26,7 @@ library(viridis)
 library(stringr)
 library(gghighlight)
 library(knitr)
+library(kableExtra)
 ```
 
 Then load the data from the [WPRDC](https://data.wprdc.org/organization/healthy-ride) (hosted on [my GitHub page](https://github.com/conorotompkins)):
@@ -77,7 +78,8 @@ data_long <- data %>%
          everything())
 
 data_long[1:10, 1:5] %>% 
-  kable()
+  kable("html") %>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
 ```
 
 Importantly, we will be excluding trips where the rider started and ended their trip at the same station. The data lacks the granularity to analyze rider location beyond the points where they began and ended their trip.
@@ -89,7 +91,8 @@ data_long <- data_long %>%
   gather(station_name_type, station_name, c(from_station_name, to_station_name))
 
 data_long[1:10, 1:5] %>% 
-  kable()
+  kable("html") %>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
 ```
 
 We also need to load the CSV with the longitude and latitude for the Healthy Ride stations
@@ -106,8 +109,9 @@ df_station_totals <- data_long %>%
   select(station_name, number_of_trips, longitude, latitude)
 
 df_station_totals %>% 
-  head() %>%
-  kable()
+  head() %>% 
+  kable("html") %>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
 ```
 
 Where are the Healthy Ride Stations?
@@ -136,7 +140,8 @@ df_long <- data_long %>%
 
 df_long %>% 
   head() %>% 
-  kable()
+  kable("html") %>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
 ```
 
 Do some stations function more as starting points or ending points for trips?
@@ -180,7 +185,8 @@ df_from_to %>%
   ungroup() %>% 
   arrange(desc(differential)) %>% 
   top_n(10, differential) %>% 
-  kable()
+  kable("html") %>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
 ```
 
 Let's map the connections between stations by drawing lines between the stations.
@@ -204,7 +210,8 @@ df_wide <- data_long %>%
 
 df_wide %>% 
   head() %>% 
-  kable()
+  kable("html") %>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
 ```
 
 Then, layer the data over the map:
@@ -230,8 +237,6 @@ top_from_stations <- df_wide %>%
   top_n(6) %>% 
   select(from_station_name) %>% 
   unlist()
-
-top_from_stations
 
 df_wide_specific_station <- df_wide %>% 
   filter(from_station_name %in% top_from_stations)
