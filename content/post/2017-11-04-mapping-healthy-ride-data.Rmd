@@ -76,15 +76,21 @@ data_long <- data %>%
          station_name_type,
          station_name,
          everything())
+
+data_long[1:10, 1:5] %>% 
+  kable()
 ```
 
-Importantly, we will be excluding trips where the rider started and ended their trip at the same station from this analysis. The data lacks the granularity to analyze rider location beyond the points where they began and ended their trip.
+Importantly, we will be excluding trips where the rider started and ended their trip at the same station. The data lacks the granularity to analyze rider location beyond the points where they began and ended their trip.
 
 ```{r filter_data}
 data_long <- data_long %>% 
   spread(station_name_type, station_name) %>% 
   filter(from_station_name != to_station_name) %>% 
   gather(station_name_type, station_name, c(from_station_name, to_station_name))
+
+data_long[1:10, 1:5] %>% 
+  kable()
 ```
 
 We also need to load the CSV with the longitude and latitude for the Healthy Ride stations
@@ -113,14 +119,14 @@ pgh_map <- ggmap(pgh_map)
 pgh_map +
   geom_point(data = df_station_totals, aes(longitude, latitude, size = number_of_trips),
              alpha = .75) +
-  scale_size_continuous(range = c(.1, 5)) +
+  scale_size_continuous("Number of trips", range = c(.1, 5)) +
   theme_minimal() +
   theme(axis.text = element_blank(),
         axis.title = element_blank())
 ```
 
-Next, join the dataframe with the table containing longitude and latitude for the stations:
-```{r create_location_df}
+Next, join the two dataframes:
+```{r create_location_df, message=FALSE}
 df_long <- data_long %>% 
   select(station_name, station_name_type) %>% 
   group_by(station_name, station_name_type) %>% 
@@ -128,6 +134,10 @@ df_long <- data_long %>%
   arrange(desc(number_of_trips)) %>% 
   left_join(data_station_locations) %>% 
   ungroup()
+
+df_long %>% 
+  head() %>% 
+  kable()
 ```
 
 Do some stations function more as starting points or ending points for trips?
@@ -135,7 +145,8 @@ Do some stations function more as starting points or ending points for trips?
 pgh_map +
   geom_point(data = df_long, aes(longitude, latitude, size = number_of_trips, color = station_name_type),
              alpha = .75) +
-  scale_size_continuous(range = c(.1, 5)) +
+  scale_size_continuous("Number of trips",range = c(.1, 5)) +
+  scale_color_discrete("Station type") +
   facet_wrap(~station_name_type) +
   theme_minimal() +
   theme(axis.text = element_blank(),
@@ -153,16 +164,18 @@ df_from_to <- df_long %>%
   select(station_name, from_trips, to_trips) %>% 
   mutate(differential = abs(from_trips - to_trips))
 
-#use the stations with large differentials as jumping off points in the network map
 df_from_to %>% 
   gghighlight_point(aes(from_trips, to_trips), label_key = station_name, differential > 4000) +
-  scale_x_continuous(limits = c(0, 45000)) +
-  scale_y_continuous(limits = c(0, 45000)) +
+  scale_x_continuous(limits = c(0, 30000)) +
+  scale_y_continuous(limits = c(0, 30000)) +
   coord_equal() +
   geom_abline() +
+  labs(x = "From trips",
+       y = "To trips") +
   theme_bw()
 ```
-The top 10 stations in terms of absolute difference between departures and arrivals:
+
+What are the top 10 stations in terms of absolute difference between departures and arrivals?
 ```{r abs_difference}
 df_from_to %>% 
   ungroup() %>% 
@@ -189,6 +202,10 @@ df_wide <- data_long %>%
   arrange(desc(number_of_trips)) %>% 
   mutate(from_station_type = ifelse(from_station_name == to_station_name,
                                "Same station", "Different station"))
+
+df_wide %>% 
+  head() %>% 
+  kable()
 ```
 
 Then, layer the data over the map:
@@ -199,13 +216,10 @@ pgh_map +
                                    alpha = number_of_trips)) +
   geom_point(data = df_wide, aes(from_longitude, from_latitude), shape = 21, size = 3, fill = "white") +
   geom_point(data = df_wide, aes(to_longitude, to_latitude), shape = 21, size = 3, fill = "white") +
-  scale_alpha_continuous(range = c(.0001, 1)) +
-  #scale_size_continuous(range = c(.05, 3)) +
-  #facet_wrap(~from_station_name) +
+  scale_alpha_continuous("Number of trips", range = c(.0001, 1)) +
   theme_minimal() +
   theme(axis.text = element_blank(),
         axis.title = element_blank())
-#ggsave("images/ride_map.png")
 ```
 
 We can also facet by the from_station_name variable to see where trips originating from certain stations end at. This plot shows the top 6 stations in terms of trips that began from that station:
@@ -218,8 +232,7 @@ top_from_stations <- df_wide %>%
   select(from_station_name) %>% 
   unlist()
 
-top_from_stations %>% 
-  kable()
+top_from_stations
 
 df_wide_specific_station <- df_wide %>% 
   filter(from_station_name %in% top_from_stations)
@@ -232,9 +245,9 @@ pgh_map +
              shape = 1, size = 2) +
   geom_point(data = df_wide_specific_station, aes(to_longitude, to_latitude), 
              shape = 1, size = 2) +
-  scale_alpha_continuous(range = c(.1, 1)) +
+  scale_alpha_continuous("Number of trips", range = c(.1, 1)) +
   facet_wrap(~from_station_name,
-             ncol = 3) +
+             nrow = 2) +
   theme_minimal() +
   theme(axis.text = element_blank(),
         axis.title = element_blank())
@@ -244,12 +257,12 @@ We can use the same method to examine the top stations in terms of absolute diff
 ```{r top_diff_stations_map, message=FALSE, warning=FALSE}
 top_diff_stations <- df_from_to %>% 
   arrange(desc(differential)) %>% 
+  distinct() %>% 
   top_n(10) %>% 
   select(station_name) %>% 
   unlist()
   
-top_diff_stations %>% 
-  kable()
+top_diff_stations
 
 df_wide_diff_station <- df_wide %>% 
   filter(from_station_name %in% top_diff_stations)
@@ -263,10 +276,9 @@ pgh_map +
                                    y = from_latitude, yend = to_latitude, 
                                    alpha = number_of_trips),
                arrow = arrow(length = unit(0.03, "npc"))) +
-  scale_alpha_continuous(range = c(.1, 1)) +
-  #scale_size_continuous(range = c(.05, 3)) +
+  scale_alpha_continuous("Number of trips", range = c(.1, 1)) +
   facet_wrap(~from_station_name,
-             ncol = 3) +
+             nrow = 2) +
   theme_minimal() +
   theme(axis.text = element_blank(),
         axis.title = element_blank())
@@ -293,8 +305,7 @@ pgh_map +
                                    alpha = number_of_trips)) +
   geom_point(data = df_wide_day, aes(from_longitude, from_latitude), shape = 21, size = 3, fill = "white") +
   geom_point(data = df_wide_day, aes(to_longitude, to_latitude), shape = 21, size = 3, fill = "white") +
-  scale_alpha_continuous(range = c(.05, .3)) +
-  #scale_size_continuous(range = c(.05, 3)) +
+  scale_alpha_continuous("Number of trips", range = c(.05, .3)) +
   facet_wrap(~is_weekday) +
   theme_minimal() +
   theme(axis.text = element_blank(),
@@ -327,9 +338,69 @@ pgh_map +
                                    alpha = number_of_trips)) +
   geom_point(data = df_wide_tod, aes(from_longitude, from_latitude), shape = 21, size = 2, fill = "white") +
   geom_point(data = df_wide_tod, aes(to_longitude, to_latitude), shape = 21, size = 2, fill = "white") +
-  scale_alpha_continuous(range = c(.05, .3)) +
+  scale_alpha_continuous("Number of trips", range = c(.05, .3)) +
   facet_wrap(~time_of_day) +
+  labs(title = "Time of day") +
   theme_minimal() +
   theme(axis.text = element_blank(),
         axis.title = element_blank())
 ```
+
+
+We can also apply kmeans clustering to the data to identify types of trips. This method only works with continuous data, so we will only be working with latitudes and longitudes.
+
+First, get the top 50 stations in terms of trips:
+```{r}
+df_long %>% 
+  count(station_name, sort = TRUE) %>% 
+  top_n(50) %>% 
+  select(station_name) %>% 
+  unlist() -> top_stations
+```
+
+Then, remove all the rows with NA values and scale the data:
+```{r}
+df_wide <- df_wide %>%
+  na.omit() %>% 
+  select(from_longitude, from_latitude, to_longitude, to_latitude) %>% 
+  mutate_all(scale)
+```
+
+Perform the clustering algorithm:
+```{r}
+kclust <- kmeans(df_wide, 7)
+kclust
+summary(kclust)
+```
+
+Attempt various numbers of clusters (from 1 to 7) to find the best fit (warning, this is memory and compute intensive)
+```{r}
+kclusts <- data.frame(k=1:7) %>% group_by(k) %>% do(kclust=kmeans(df_wide, .$k))
+```
+
+Pull out the cluster data and tidy it:
+```{r}
+clusters <- kclusts %>% group_by(k) %>% do(tidy(.$kclust[[1]])) %>% 
+  rename(from_longitude = x1,
+         from_latitude= x2,
+         to_longitude = x3,
+         to_latitude = x4)
+#assignments <- kclusts %>% group_by(k) %>% do(augment(.$kclust[[1]], df_wide))
+clusterings <- kclusts %>% group_by(k) %>% do(glance(.$kclust[[1]]))
+```
+
+This plot tells us that 6 clusters is probably the correct number. The goal is to find the lowest tot.withinss value with the fewest number of clusters:
+```{r}
+ggplot(clusterings, aes(k, tot.withinss)) + 
+  geom_line() +
+  scale_x_continuous(breaks = 1:10)
+```
+
+Since we scaled the data, it no longer has meaning when applied to a map. However, we can see the general types of trips:
+```{r}
+clusters %>% 
+  filter(k >= 2) %>% 
+  ggplot(aes(x = from_longitude, xend = to_longitude, y = from_latitude, yend = to_latitude)) + 
+  geom_segment(aes(color = cluster, size = size),
+               arrow = arrow(length = unit(0.03, "npc"))) + 
+  facet_wrap(~ paste(k, "clusters"))
