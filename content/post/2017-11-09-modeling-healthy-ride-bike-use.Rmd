@@ -12,7 +12,6 @@ tags:
   - R Markdown
   - WPRDC
 draft: true
-runtime: shiny
 ---
 
 
@@ -27,9 +26,9 @@ options(scipen = 99)
 ```
 
 ```{r}
-source("scripts/load_data_long.R")
-source("scripts/load_data_wide.R")
-rm(list = c("data", "data_long"))
+#source("scripts/load_data_long.R")
+#source("scripts/load_data_wide.R")
+#rm(list = c("data", "data_long"))
 ```
 
 ```{r}
