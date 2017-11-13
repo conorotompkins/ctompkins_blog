@@ -1,7 +1,7 @@
 ---
 title: Mapping Healthy Ride Data
 author: Conor Tompkins
-date: '2017-11-04'
+date: '2017-11-12'
 slug: mapping-healthy-ride-data
 categories:
   - Pittsburgh
@@ -11,7 +11,6 @@ tags:
   - Pittsburgh
   - R Markdown
   - WPRDC
-runtime: shiny
 ---
 
 This post is about mapping the Healthy Ride dataset in R.
@@ -345,62 +344,3 @@ pgh_map +
   theme(axis.text = element_blank(),
         axis.title = element_blank())
 ```
-
-
-We can also apply kmeans clustering to the data to identify types of trips. This method only works with continuous data, so we will only be working with latitudes and longitudes.
-
-First, get the top 50 stations in terms of trips:
-```{r}
-df_long %>% 
-  count(station_name, sort = TRUE) %>% 
-  top_n(50) %>% 
-  select(station_name) %>% 
-  unlist() -> top_stations
-```
-
-Then, remove all the rows with NA values and scale the data:
-```{r}
-df_wide <- df_wide %>%
-  na.omit() %>% 
-  select(from_longitude, from_latitude, to_longitude, to_latitude) %>% 
-  mutate_all(scale)
-```
-
-Perform the clustering algorithm:
-```{r}
-kclust <- kmeans(df_wide, 7)
-kclust
-summary(kclust)
-```
-
-Attempt various numbers of clusters (from 1 to 7) to find the best fit (warning, this is memory and compute intensive)
-```{r}
-kclusts <- data.frame(k=1:7) %>% group_by(k) %>% do(kclust=kmeans(df_wide, .$k))
-```
-
-Pull out the cluster data and tidy it:
-```{r}
-clusters <- kclusts %>% group_by(k) %>% do(tidy(.$kclust[[1]])) %>% 
-  rename(from_longitude = x1,
-         from_latitude= x2,
-         to_longitude = x3,
-         to_latitude = x4)
-#assignments <- kclusts %>% group_by(k) %>% do(augment(.$kclust[[1]], df_wide))
-clusterings <- kclusts %>% group_by(k) %>% do(glance(.$kclust[[1]]))
-```
-
-This plot tells us that 6 clusters is probably the correct number. The goal is to find the lowest tot.withinss value with the fewest number of clusters:
-```{r}
-ggplot(clusterings, aes(k, tot.withinss)) + 
-  geom_line() +
-  scale_x_continuous(breaks = 1:10)
-```
-
-Since we scaled the data, it no longer has meaning when applied to a map. However, we can see the general types of trips:
-```{r}
-clusters %>% 
-  filter(k >= 2) %>% 
-  ggplot(aes(x = from_longitude, xend = to_longitude, y = from_latitude, yend = to_latitude)) + 
-  geom_segment(aes(color = cluster, size = size),
-               arrow = arrow(length = unit(0.03, "npc"))) + 
-  facet_wrap(~ paste(k, "clusters"))
