@@ -1,0 +1,56 @@
+---
+title: Analyzing Allegheny County Overdose Data
+author: Conor Tompkins
+date: '2018-02-06'
+slug: analyzing-allegheny-county-overdose-data
+categories:
+  - Pittsburgh
+  - R
+tags:
+  - Pittsburgh
+  - WPRDC
+  - Allegheny County
+  - Overdose
+  - Opiates
+---
+
+
+```{r load_libraries_settings message=FALSE, warning=FALSE}
+library(tidyverse)
+library(scales)
+library(viridis)
+library(ggrepel)
+
+theme_set(theme_bw())
+```
+
+```{r load_df}
+df <- read_csv("https://raw.githubusercontent.com/conorotompkins/allegheny_overdoses/master/data/overdose_df.csv")
+```
+
+```{r year_to_factor}
+df %>% 
+  mutate(year = as.factor(year)) -> df
+```
+
+```{r cumulative_year_plot}
+df %>% 
+  count(year, yday) -> df_year
+
+df %>% 
+  count(year, yday) %>% 
+  group_by(year) %>% 
+  mutate(smooth = predict(loess(n ~ yday))) %>% 
+  summarize(last_yday = last(yday),
+            last_smooth = last(smooth),
+            tag = unique(year)) -> df_year_label
+
+ggplot(data = df_year, aes(x = yday, y = n, color = year)) +
+  geom_smooth(se = FALSE) +
+  geom_label_repel(data = df_year_label, aes(x = last_yday, y = last_smooth, label = year)) +
+  scale_color_discrete(guide = FALSE) +
+  labs(title = "Fatal overdoses in Allegheny County",
+       x = "Day of the year",
+       y = "Number of overdoses")
+```
+
