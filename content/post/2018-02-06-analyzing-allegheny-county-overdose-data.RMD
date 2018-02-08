@@ -14,10 +14,20 @@ tags:
   - Opiates
 draft: true
 ---
+##To do
+-Increase font size of axis text and labels
 
-###To do
--Add geom_point() to end of lines on cumulative plots (DONE)
--Add narrative text
+Opiate addiction and overdose have become a major problem in American society. [The life expectancy in the U.S. has decreased for the past 2 years, and deaths from drug overdoses rose 21% from 2016 to 2017.](https://www.washingtonpost.com/national/health-science/fueled-by-drug-crisis-us-life-expectancy-declines-for-a-second-straight-year/2017/12/20/2e3f8dea-e596-11e7-ab50-621fe0588340_story.html?utm_term=.373d79de65f5)
+
+Communities have been [flooded with prescription painkillers with deadly effects.](https://www.wvgazettemail.com/news/health/drug-firms-shipped-m-pain-pills-to-wv-town-with/article_ef04190c-1763-5a0c-a77a-7da0ff06455b.html)
+
+Pennsylvania and the Pittsburgh area have also suffered from drug overdoses. [38 out of every 100,000 Pennsylvanians died from a drug overdose in 2017](http://www.post-gazette.com/news/health/2017/12/21/CDC-releases-opioid-overdoses-deaths-data-figures-surge-fentanyl/stories/201712210100)
+
+The [Western Pennsylvania Regional Data Center has published data on accidental fatal overdoses in Allegheny County](https://data.wprdc.org/dataset/allegheny-county-fatal-accidental-overdoses). The data spans from 2008 to present day, with a few months of delay on the most recent data due to the time required to collect and process the data.
+
+In this post, I will use R to perform an exploratory data analysis on this data. I hope to find useful (find another word) trends in the data, and identify areas for further study. As always, the code and data used in this post are available here and on my [GitHub repository for this post.](https://github.com/conorotompkins/allegheny_overdoses)
+
+The first step is to load the libraries we will use, and to set the theme for all the plots.
 
 ```{r load_libraries_settings, message=FALSE, warning=FALSE}
 library(tidyverse)
@@ -25,14 +35,18 @@ library(lubridate)
 library(scales)
 library(viridis)
 library(ggrepel)
+library(knitr)
+library(kableExtra)
 
 theme_set(theme_bw())
 ```
 
-```{r load_df}
+Then, load the data that the WPRDC published. I've already done some preprocessing of the data to get it into shape. You can find that script [here](https://github.com/conorotompkins/allegheny_overdoses/blob/master/scripts/load_data.R)
+```{r load_df, message=FALSE, warning=FALSE, paged.print=FALSE}
 df <- read_csv("https://raw.githubusercontent.com/conorotompkins/allegheny_overdoses/master/data/overdose_df.csv")
 ```
 
+This code changes the way R treats some of the data, which makes it more useful for plotting
 ```{r year_to_factor}
 df %>% 
   mutate(year = as.factor(year),
@@ -40,7 +54,42 @@ df %>%
          month = month(date, label = TRUE)) -> df
 ```
 
-```{r cumulative_year_plot}
+This chart shows the cumulative sum of all fatal overdoses in the timeframe of the dataset. This plot shows a visible uptick in the number of overdoses starting in 2015. The trend appears to flatten at the end of 2017.
+```{r cumulative sum, fig.height=9, fig.width=12}
+df %>% 
+  count(date) %>% 
+  mutate(n_cumsum = cumsum(n)) %>% 
+  ggplot(aes(date, n_cumsum)) +
+  geom_hline(yintercept = 0) +
+  geom_line(size = 2) +
+  labs(y = "Cumulative Sum of Fatal Overdoses",
+       x = "")
+```
+
+We can explore this data more granularly by looking at each year individually. The overall trend for the years 2008-2014 appear to be largely the same. As we saw in the previous graph, the number of fatal overdoses began to increase in 2015, and the situation worsened in 2016. 2017 was on pace to be the worst year on record, but the trend flattened around 6 months into the year. 
+```{r fatal_ODs_by_year_cumulative, fig.height=9, fig.width=12, message=FALSE, warning=FALSE, paged.print=FALSE}
+df %>% 
+  group_by(year, yday) %>% 
+  summarize(n = n()) %>% 
+  mutate(n_cumsum = cumsum(n)) -> df_year_cumsum
+
+df %>% 
+  group_by(year) %>% 
+  summarize(last_yday = last(yday),
+            total = n()) -> df_year_tag
+
+ggplot(data = df_year_cumsum, aes(x = yday, y = n_cumsum, color = year)) +
+  geom_line(size = 2) +
+  geom_label_repel(data = df_year_tag, aes(x = last_yday, y = total, label = year, color = year, group = year)) +
+  geom_point(data = df_year_tag, aes(x = last_yday, y = total, color = year, group = year), size = 3) +
+  scale_size_continuous(guide = FALSE) +
+  scale_color_discrete(guide = FALSE) +
+  labs(x = "Day of the year",
+       y = "Cumulative sum of fatal overdoses")
+```
+
+This plot shows a smoothed representation of the number of fatal overdoses per day for each year. 2016 and 2017 stand out here. Overdoses in 2016 escalated around June. As we saw previously, 2017 was on pace to surpass 2016 early on, but the number of overdoses per day droppped sharply halfway through the year.
+```{r year_plot, fig.height=9, fig.width=12, message=FALSE, warning=FALSE, paged.print=FALSE}
 df %>% 
   count(year, yday) -> df_year
 
@@ -62,42 +111,10 @@ ggplot(data = df_year, aes(x = yday, y = n, color = year)) +
        y = "Number of overdoses")
 ```
 
-```{r cumulative sum}
-df %>% 
-  count(date) %>% 
-  mutate(n_cumsum = cumsum(n)) %>% 
-  ggplot(aes(date, n_cumsum)) +
-  geom_hline(yintercept = 0) +
-  geom_line(size = 2) +
-  labs(y = "Cumulative Sum of Fatal Overdoses")
-```
-
-```{r fatal_ODs_by_year_cumulative}
-#fatal overdoses by year
-df %>% 
-  group_by(year, yday) %>% 
-  summarize(n = n()) %>% 
-  mutate(n_cumsum = cumsum(n)) -> df_year_cumsum
-
-df %>% 
-  group_by(year) %>% 
-  summarize(last_yday = last(yday),
-            total = n()) -> df_year_tag
-
-ggplot(data = df_year_cumsum, aes(x = yday, y = n_cumsum, color = year)) +
-  geom_line(size = 2) +
-  geom_label_repel(data = df_year_tag, aes(x = last_yday, y = total, label = year, color = year, group = year)) +
-  geom_point(data = df_year_tag, aes(x = last_yday, y = total, color = year, group = year), size = 3) +
-  scale_size_continuous(guide = FALSE) +
-  scale_color_discrete(guide = FALSE) +
-  labs(x = "Day of year",
-       y = "Cumulative sum of fatal overdoses")
-```
-
-```{r tile_graph}
+This heatmap shows the number of fatal overdoses by day of the month, month, and year. This plot shows spikes in deaths, especially in 2016 and 2017. [Some media report that this phenomenon could be explained by fentanyl, a particularly potent synthetic opiate.](https://www.yorkdispatch.com/story/news/2017/12/05/heroin-overdoses-spike-york-county/916485001/) For example, a heroin user could get a supply of heroin laced with fentanyl, and underestimate the strength of the dose. 
+```{r tile_graph, fig.height=10, fig.width=12}
 #create tile df
 df %>% 
-  #filter(date >= "2016-01-01") %>% 
   group_by(year, month, mday) %>%
   summarize(n = n()) %>% 
   ungroup() %>% 
@@ -114,30 +131,38 @@ df_tile$n[df_tile$month %in% months_30 & df_tile$mday == 31] <- NA
 df_tile %>% 
   ggplot(aes(mday, month, fill = n)) +
   geom_tile() +
-  facet_grid(year ~.) +
+  facet_wrap(~year, ncol = 2) +
   scale_fill_viridis("Number of fatal overdoses") +
   coord_equal() +
   scale_x_continuous(expand = c(0,0)) +
   scale_y_discrete(expand = c(0,0),
                    limits = rev(levels(df$month))) +
   labs(y = NULL,
-       x = "Day of month")
+       x = "Day of the month")
 ```
 
-
-```{r fatal_ODs_by_zip}
+The WPRDC dataset identifies the zip code that the overdose happened in, which allows a broad geographic analysis of which communities are affected. The Mt. Oliver/Knoxville/Carrick area (15210) is most affected, followed by the North Side/Brighton Heights/Spring Hill (15212) and McKees Rocks/Robinson (15136) areas.
+```{r top_zip codes, message=FALSE, warning=FALSE}
 #fatal overdoses by zip code
 top_zips <- df %>% 
   count(incident_zip, sort = TRUE) %>% 
   top_n(5) %>% 
   select(incident_zip) %>% 
   unlist()
-top_zips
 
+df %>% 
+  count(incident_zip, sort = TRUE) %>% 
+  top_n(5) %>% 
+  rename("fatal_overdoses" = n) %>% 
+  kable("html") %>% 
+  kable_styling()
+```
+
+A cumulative view of the data by zip code show that 15210 and 15212 are in a different category compared to the other areas of Allegheny County.
+```{r fatal_ODs_by_zip, fig.height=9, fig.width=12, message=FALSE, warning=FALSE, paged.print=FALSE}
 zips_df <- df %>% 
   arrange(incident_zip, date) %>% 
   count(incident_zip, date) %>% 
-  #mutate(is_top_zip = incident_zip %in% top_zips) %>% 
   group_by(incident_zip) %>% 
   mutate(n_cumsum = cumsum(n))
 
@@ -164,13 +189,8 @@ ggplot(zips_df, aes(x = date, y = n_cumsum, group = incident_zip)) +
        x = NULL)
 ```
 
-```{r top_OD_factors_cumulative}
-#identify top 10 OD factors
-df %>%
-  select(id, date, starts_with("od_")) %>% 
-  gather(od_factor, od_flag, starts_with("od_"))
-
-
+A cumulative view of the number of overdoses by factor (drug) shows a striking trend. This table shows the top 10 drugs in terms of number of overdoses. It is important to note that most of these are not exclusive. An overdose victim can have multiple drugs in their system at the time of autopsy.
+```{r top_OD_factors, message=FALSE, warning=FALSE}
 df_factor_total <- tibble(factor = c(df$combined_od1,
                  df$combined_od2,
                  df$combined_od3,
@@ -183,7 +203,15 @@ df_factor_total <- df_factor_total %>%
   filter(!is.na(factor)) %>% 
   count(factor, sort = TRUE)
 
+df_factor_total %>% 
+  rename("number_of_overdoses" = n) %>% 
+  top_n(10) %>% 
+  kable("html") %>% 
+  kable_styling()
+```
 
+Cocaine was the most common drug in the system of overdose victims up until 2012, but it was passed by heroin in 2014. Fentanyl gained a foothold in 2014, and exploded in 2016.
+```{r top_OD_factors_cumulative, fig.height=9, fig.width=12, message=FALSE, warning=FALSE, paged.print=FALSE}
 df %>% 
   mutate(od_heroin = str_detect(od_factors, "Heroin"),
          od_cocaine = str_detect(od_factors, "Cocaine"),
@@ -223,12 +251,12 @@ ggplot(data = df_factors_cumsum, aes(x = date, y = od_cumsum, color = od_factor)
   scale_color_discrete(guide = FALSE) +
   scale_y_continuous(expand = c(.01, .1)) +
   labs(y = "Cumulative sum of fatal overdoses by overdose factor",
-       caption = "Not exclusive")
+       x = "",
+       caption = "Drug overdoses not exclusive")
 ```
 
-```{r top_OD_factors_cumulative_2017}
-#2017ncumsum by drug
-
+A view of the same data for the year 2017 show that fentanyl has by far been the most common drug linked to fatal overdoses. Again, we see the visible flattening of the overdoses in September.
+```{r top_OD_factors_cumulative_2017, fig.height=9, fig.width=12, message=FALSE, warning=FALSE, paged.print=FALSE}
 df_factors_long %>% 
   filter(date >= "2017-01-01") %>% 
   group_by(od_factor, date) %>% 
@@ -249,14 +277,12 @@ df_factors_cumsum_2017 %>%
   geom_point(data = df_factors_cumsum_label_2017, aes(x = last_date, y = total, group = od_factor, color = od_factor), size = 3) +
   scale_color_discrete(guide = FALSE) +
   scale_y_continuous(expand = c(.01, .1)) +
-  labs(y = "Cumulative sum of fatal overdoses by overdose factor")
+  labs(y = "Cumulative sum of fatal overdoses by overdose factor",
+       x = "")
 ```
 
-```{r heroin_and_fentanyl}
-
-#over time, what % of heroin ODs contained fentanyl
-#CJ - res
-
+Heroin and fentanyl have proven to be a particularly deadly combination. We can explore the combination of these drugs. This plot shows the cumulative number of fatal overdoses involving heroin.
+```{r heroin_cumulative, fig.height=9, fig.width=12, message=FALSE, warning=FALSE, paged.print=FALSE}
 df_factors %>% 
   select(date, od_heroin) %>% 
   filter(od_heroin) %>% 
@@ -265,11 +291,13 @@ df_factors %>%
          tag = "Heroin") %>% 
   ggplot(aes(x = date, y = n_cumsum)) +
   geom_line(size = 2) +
-  #geom_label_repel(aes(x = last(date), label = tag)) + not working
   labs(title = "Fatal overdoses involving heroin",
        x = "",
        y = "Cumulative sum of fatal overdoses")
+```
 
+This plot shows the % of fatal heroin overdoses that also involve fentanyl. Again, we see that fentanyl arrived in Allegheny County in 2014, and quickly became tied to heroin. At its peak, over 75% of heroin overdoses involved fentanyl.
+```{r heroin_and_fentanyl, fig.height=9, fig.width=12, message=FALSE, warning=FALSE, paged.print=FALSE}
 df_factors %>% 
   select(date, od_heroin, od_fentanyl) %>% 
   filter(od_heroin) %>% 
@@ -277,7 +305,6 @@ df_factors %>%
   summarize(percent_fentanyl = mean(od_fentanyl)) -> df_factors_heroin_fent 
 
 df_factors_heroin_fent %>% 
-  #filter(date >= "2017-01-01") %>% 
   ggplot(aes(date, percent_fentanyl)) +
   geom_point(alpha = .1) +
   geom_smooth() +
@@ -286,3 +313,11 @@ df_factors_heroin_fent %>%
        x = "",
        y = "% involving fentantyl")
 ```
+
+
+##Areas for further research
+Geographic analysis using the zip code data could expose more information about how communities are impacted by drug overdoses.
+
+The combination of heroin and fentanyl can be explored further. It would also be worth exploring whether there is any link between fentanyl and cocaine. This could be performed using network analysis.
+
+The drastic flattening of the trend in 2017 deserves further examination. It is unclear whether this was caused by a medical intervention, a shift in community policy, or a change in law enforcement strategies. A combination of those, and other factors, could explain the rapid dropoff. Alternatively, the change could be explained by a change in the way the data was collected and/or processed.
