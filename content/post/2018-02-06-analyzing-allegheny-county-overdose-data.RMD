@@ -1,18 +1,18 @@
 ---
-title: Analyzing Allegheny County Overdose Data
-author: Conor Tompkins
+title: "Analyzing Allegheny County Overdose Data"
+author: "Conor Tompkins"
 date: '2018-02-06'
+draft: yes
 slug: analyzing-allegheny-county-overdose-data
-categories:
-  - Pittsburgh
-  - R
 tags:
-  - Pittsburgh
-  - WPRDC
-  - Allegheny County
-  - Overdose
-  - Opiates
-draft: true
+- Pittsburgh
+- WPRDC
+- Allegheny County
+- Overdose
+- Opiates
+categories:
+- Pittsburgh
+- R
 ---
 ##To do
 -Increase font size of axis text and labels
@@ -25,7 +25,7 @@ Pennsylvania and the Pittsburgh area have also suffered from drug overdoses. [38
 
 The [Western Pennsylvania Regional Data Center has published data on accidental fatal overdoses in Allegheny County](https://data.wprdc.org/dataset/allegheny-county-fatal-accidental-overdoses). The data spans from 2008 to present day, with a few months of delay on the most recent data due to the time required to collect and process the data.
 
-In this post, I will use R to perform an exploratory data analysis on this data. I hope to find useful (find another word) trends in the data, and identify areas for further study. As always, the code and data used in this post are available here and on my [GitHub repository for this post.](https://github.com/conorotompkins/allegheny_overdoses)
+In this post, I will use R to perform an exploratory data analysis on this data. I hope to find interesting trends in the data, and identify areas for further study. As always, the code and data used in this post are available here and on my [GitHub repository for this post.](https://github.com/conorotompkins/allegheny_overdoses)
 
 The first step is to load the libraries we will use, and to set the theme for all the plots.
 
