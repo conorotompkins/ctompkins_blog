@@ -72,7 +72,7 @@ df %>%
        caption = "Conor Tompkins @conor_tompkins")
 ```
 
-We can explore this data more granularly by looking at each year individually. The overall trend for the years 2008-2014 appear to be largely the same. As we saw in the previous graph, the number of fatal overdoses began to increase in 2015, and the situation worsened in 2016. 2017 was on pace to be the worst year on record, but the trend flattened around 6 months into the year. 
+We can explore this data more granularly by looking at each year individually. The overall trend for the years 2008-2014 appear to be largely the same. As we saw in the previous graph, the number of fatal overdoses began to increase in 2015, and the situation worsened in 2016. 2017 was clearly on pace to be the worst year on record.
 ```{r fatal_ODs_by_year_cumulative, fig.height=9, fig.width=12, message=FALSE, warning=FALSE, paged.print=FALSE}
 df %>% 
   group_by(year, yday) %>% 
@@ -97,7 +97,7 @@ ggplot(data = df_year_cumsum, aes(x = yday, y = n_cumsum, color = year)) +
        caption = "Conor Tompkins @conor_tompkins")
 ```
 
-This plot shows a smoothed representation of the number of fatal overdoses per day for each year. 2016 and 2017 stand out here. Overdoses in 2016 escalated around June. As we saw previously, 2017 was on pace to surpass 2016 early on, but the number of overdoses per day droppped sharply halfway through the year.
+This plot shows a smoothed representation of the number of fatal overdoses per day for each year. 2016 and 2017 stand out here. Overdoses in 2016 escalated around June. As we saw previously, 2017 was worse than 2016.
 ```{r year_plot, fig.height=9, fig.width=12, message=FALSE, warning=FALSE, paged.print=FALSE}
 df %>% 
   count(year, yday) -> df_year
@@ -123,7 +123,7 @@ ggplot(data = df_year, aes(x = yday, y = n, color = year)) +
 ```
 
 This heatmap shows the number of fatal overdoses by day of the month, month, and year. This plot shows spikes in deaths, especially in 2016 and 2017. [Some media report that this phenomenon could be explained by fentanyl, a particularly potent synthetic opiate.](https://www.yorkdispatch.com/story/news/2017/12/05/heroin-overdoses-spike-york-county/916485001/) For example, a heroin user could get a supply of heroin laced with fentanyl, and underestimate the strength of the dose. 
-```{r tile_graph, fig.height=10, fig.width=12}
+```{r tile_graph, fig.height=14, fig.width=12}
 #create tile df
 df %>% 
   group_by(year, month, mday) %>%
@@ -155,7 +155,7 @@ df_tile %>%
        caption = "Conor Tompkins @conor_tompkins")
 ```
 
-The WPRDC dataset identifies the zip code that the overdose happened in, which allows a broad geographic analysis of which communities are affected. The Mt. Oliver/Knoxville/Carrick area (15210) is most affected, followed by the North Side/Brighton Heights/Spring Hill (15212) and McKees Rocks/Robinson (15136) areas.
+The WPRDC dataset identifies the zip code that the overdose occurred in, which allows a broad geographic analysis of which communities are affected. The Mt. Oliver/Knoxville/Carrick area (15210) is most affected, followed by the North Side/Brighton Heights/Spring Hill (15212) and McKees Rocks/Robinson (15136) areas.
 ```{r top_zip codes, message=FALSE, warning=FALSE}
 #fatal overdoses by zip code
 top_zips <- df %>% 
@@ -226,7 +226,7 @@ df_factor_total %>%
   kable_styling()
 ```
 
-Cocaine was the most common drug in the system of overdose victims up until 2012, but it was passed by heroin in 2014. Fentanyl gained a foothold in 2014, and exploded in 2016.
+Cocaine was the most common drug in the system of overdose victims up until 2012, but it was passed by heroin in 2013. The number of overdoses involving fentanyl exploded in 2015.
 ```{r top_OD_factors_cumulative, fig.height=9, fig.width=12, message=FALSE, warning=FALSE, paged.print=FALSE}
 df %>% 
   mutate(od_heroin = str_detect(od_factors, "Heroin"),
@@ -273,7 +273,7 @@ ggplot(data = df_factors_cumsum, aes(x = date, y = od_cumsum, color = od_factor)
        caption = "Conor Tompkins @conor_tompkins \n Drug overdoses not exclusive")
 ```
 
-A view of the same data for the year 2017 show that fentanyl has by far been the most common drug linked to fatal overdoses. Again, we see the visible flattening of the overdoses in September.
+A view of the same data for the year 2017 show that fentanyl has by far been the most common drug linked to fatal overdoses.
 ```{r top_OD_factors_cumulative_2017, fig.height=9, fig.width=12, message=FALSE, warning=FALSE, paged.print=FALSE}
 df_factors_long %>% 
   filter(date >= "2017-01-01") %>% 
@@ -320,7 +320,7 @@ df_factors %>%
        caption = "Conor Tompkins @conor_tompkins")
 ```
 
-This plot shows the % of fatal heroin overdoses that also involve fentanyl. Again, we see that fentanyl arrived in Allegheny County in 2014, and quickly became tied to heroin. At its peak, over 75% of heroin overdoses involved fentanyl.
+This plot shows the % of fatal heroin overdoses that also involve fentanyl. Again, we see that fentanyl arrived in Allegheny County in 2014, and quickly became closely linked to heroin. In late 2017, over 75% of heroin overdoses involved fentanyl.
 ```{r heroin_and_fentanyl, fig.height=9, fig.width=12, message=FALSE, warning=FALSE, paged.print=FALSE}
 df_factors %>% 
   select(date, od_heroin, od_fentanyl) %>% 
@@ -344,6 +344,4 @@ df_factors_heroin_fent %>%
 ##Areas for further research
 Geographic analysis using the zip code data could expose more information about how communities are impacted by drug overdoses.
 
-The combination of heroin and fentanyl can be explored further. It would also be worth exploring whether there is any link between fentanyl and cocaine. This could be performed using network analysis.
-
-The drastic flattening of the trend in 2017 deserves further examination. It is unclear whether this was caused by a medical intervention, a shift in community policy, or a change in law enforcement strategies. A combination of those, and other factors, could explain the rapid dropoff. Alternatively, the change could be explained by a change in the way the data was collected and/or processed.
+The combination of heroin and fentanyl can be explored further. It would also be worth exploring whether there is any link between fentanyl and cocaine. More generally, the correlation between the various drugs could be explored using network analysis.
