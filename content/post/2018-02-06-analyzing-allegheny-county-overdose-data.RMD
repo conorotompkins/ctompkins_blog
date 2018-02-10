@@ -38,7 +38,8 @@ library(ggrepel)
 library(knitr)
 library(kableExtra)
 
-theme_set(theme_bw())
+#use a customized version of theme_bw()
+theme_set(theme_bw(base_size = 18))
 ```
 
 Then, load the data that the WPRDC published. I've already done some preprocessing of the data to get it into shape. You can find that script [here](https://github.com/conorotompkins/allegheny_overdoses/blob/master/scripts/load_data.R)
@@ -46,15 +47,16 @@ Then, load the data that the WPRDC published. I've already done some preprocessi
 df <- read_csv("https://raw.githubusercontent.com/conorotompkins/allegheny_overdoses/master/data/overdose_df.csv")
 ```
 
-This code changes the way R treats some of the data, which makes it more useful for plotting
+This code changes the way R treats some of the data, which makes it more useful for plotting. It also filters out data that was entered after September 1, 2017. This is because the data after that date is not complete.
 ```{r year_to_factor}
 df %>% 
   mutate(year = as.factor(year),
          incident_zip = as.character(incident_zip),
-         month = month(date, label = TRUE)) -> df
+         month = month(date, label = TRUE)) %>% 
+    filter(date <= "2017-09-01") -> df
 ```
 
-This chart shows the cumulative sum of all fatal overdoses in the timeframe of the dataset. This plot shows a visible uptick in the number of overdoses starting in 2015. The trend appears to flatten at the end of 2017.
+This chart shows the cumulative sum of all fatal overdoses in the timeframe of the dataset. This plot shows a visible uptick in the number of overdoses starting in 2015.
 ```{r cumulative sum, fig.height=9, fig.width=12}
 df %>% 
   count(date) %>% 
@@ -62,8 +64,12 @@ df %>%
   ggplot(aes(date, n_cumsum)) +
   geom_hline(yintercept = 0) +
   geom_line(size = 2) +
-  labs(y = "Cumulative Sum of Fatal Overdoses",
-       x = "")
+  scale_y_continuous(label=comma) +
+  labs(title = "Fatal overdoses in Allegheny County",
+       y = "Cumulative sum of fatal overdoses",
+       x = "",
+       subtitle = "Data from the WPRDC",
+       caption = "Conor Tompkins @conor_tompkins")
 ```
 
 We can explore this data more granularly by looking at each year individually. The overall trend for the years 2008-2014 appear to be largely the same. As we saw in the previous graph, the number of fatal overdoses began to increase in 2015, and the situation worsened in 2016. 2017 was on pace to be the worst year on record, but the trend flattened around 6 months into the year. 
@@ -84,8 +90,11 @@ ggplot(data = df_year_cumsum, aes(x = yday, y = n_cumsum, color = year)) +
   geom_point(data = df_year_tag, aes(x = last_yday, y = total, color = year, group = year), size = 3) +
   scale_size_continuous(guide = FALSE) +
   scale_color_discrete(guide = FALSE) +
-  labs(x = "Day of the year",
-       y = "Cumulative sum of fatal overdoses")
+  labs(title = "Fatal overdoses by year",
+       x = "Day of the year",
+       y = "Cumulative sum of fatal overdoses",
+       subtitle = "Data from the WPRDC",
+       caption = "Conor Tompkins @conor_tompkins")
 ```
 
 This plot shows a smoothed representation of the number of fatal overdoses per day for each year. 2016 and 2017 stand out here. Overdoses in 2016 escalated around June. As we saw previously, 2017 was on pace to surpass 2016 early on, but the number of overdoses per day droppped sharply halfway through the year.
@@ -106,9 +115,11 @@ ggplot(data = df_year, aes(x = yday, y = n, color = year)) +
   geom_label_repel(data = df_year_label, aes(x = last_yday, y = last_smooth, label = year)) +
   geom_point(data = df_year_label, aes(x = last_yday, y = last_smooth), size = 3) +
   scale_color_discrete(guide = FALSE) +
-  labs(title = "Fatal overdoses in Allegheny County",
+  labs(title = "Fatal overdoses by year",
        x = "Day of the year",
-       y = "Number of overdoses")
+       y = "Number of overdoses",
+       subtitle = "Data from the WPRDC",
+       caption = "Conor Tompkins @conor_tompkins")
 ```
 
 This heatmap shows the number of fatal overdoses by day of the month, month, and year. This plot shows spikes in deaths, especially in 2016 and 2017. [Some media report that this phenomenon could be explained by fentanyl, a particularly potent synthetic opiate.](https://www.yorkdispatch.com/story/news/2017/12/05/heroin-overdoses-spike-york-county/916485001/) For example, a heroin user could get a supply of heroin laced with fentanyl, and underestimate the strength of the dose. 
@@ -122,8 +133,8 @@ df %>%
   replace_na(list(n = 0)) -> df_tile
 
 #hack the data so NA and 0s aren't combined
-df_tile$n[df_tile$year == 2017 & df_tile$month == "Oct" & df_tile$mday >24] <- NA
-df_tile$n[df_tile$year == 2017 & df_tile$month %in% c("Nov", "Dec")] <- NA
+df_tile$n[df_tile$year == 2017 & df_tile$month == "Sep" & df_tile$mday >= 1] <- NA
+df_tile$n[df_tile$year == 2017 & df_tile$month %in% c("Oct", "Nov", "Dec")] <- NA
 #September, April, June, and November have 30 days
 months_30 <- c("Sep", "Apr", "Jun", "Nov")
 df_tile$n[df_tile$month %in% months_30 & df_tile$mday == 31] <- NA
@@ -137,8 +148,11 @@ df_tile %>%
   scale_x_continuous(expand = c(0,0)) +
   scale_y_discrete(expand = c(0,0),
                    limits = rev(levels(df$month))) +
-  labs(y = NULL,
-       x = "Day of the month")
+  labs(title = "Fatal overdoses in Allegheny County",
+       y = NULL,
+       x = "Day of the month",
+       subtitle = "Data from the WPRDC",
+       caption = "Conor Tompkins @conor_tompkins")
 ```
 
 The WPRDC dataset identifies the zip code that the overdose happened in, which allows a broad geographic analysis of which communities are affected. The Mt. Oliver/Knoxville/Carrick area (15210) is most affected, followed by the North Side/Brighton Heights/Spring Hill (15212) and McKees Rocks/Robinson (15136) areas.
@@ -181,12 +195,14 @@ ggplot(zips_df, aes(x = date, y = n_cumsum, group = incident_zip)) +
   geom_line(data = top_zips_df, aes(x = date, y = n_cumsum, color = incident_zip), size = 2) +
   geom_label_repel(data = top_zips_df_labels, aes(x = last_date, y = total, label = tag, color = incident_zip)) +
   geom_point(data = top_zips_df_labels, aes(x = last_date, y = total, color = incident_zip), size = 3) +
-  labs(y = "Cumulative Sum of Fatal Overdoses") +
   scale_alpha_manual(values = c(.1, 1), guide = FALSE) +
   scale_color_discrete(guide = FALSE) +
   scale_y_continuous(expand = c(.01, .1)) +
-  labs(title = "Fatal overdoses per zip code, cumulative",
-       x = NULL)
+  labs(title = "Fatal overdoses per zip code",
+       x = NULL,
+       y = "Cumulative sum of fatal overdoses",
+       subtitle = "Data from the WPRDC",
+       caption = "Conor Tompkins @conor_tompkins")
 ```
 
 A cumulative view of the number of overdoses by factor (drug) shows a striking trend. This table shows the top 10 drugs in terms of number of overdoses. It is important to note that most of these are not exclusive. An overdose victim can have multiple drugs in their system at the time of autopsy.
@@ -249,10 +265,12 @@ ggplot(data = df_factors_cumsum, aes(x = date, y = od_cumsum, color = od_factor)
   geom_label_repel(data = df_factors_cumsum_label, aes(x = last_date, y = total, label = str_replace(od_factor, "od_", ""), group = od_factor)) +
   geom_point(data = df_factors_cumsum_label, aes(x = last_date, y = total, group = od_factor, color = od_factor), size = 3) +
   scale_color_discrete(guide = FALSE) +
-  scale_y_continuous(expand = c(.01, .1)) +
-  labs(y = "Cumulative sum of fatal overdoses by overdose factor",
+  scale_y_continuous(expand = c(.01, .1), label = comma) +
+  labs(title = "Fatal overdoses by drug factor",
+       y = "Cumulative sum of fatal overdoses",
        x = "",
-       caption = "Drug overdoses not exclusive")
+       subtitle = "Data from the WPRDC",
+       caption = "Conor Tompkins @conor_tompkins \n Drug overdoses not exclusive")
 ```
 
 A view of the same data for the year 2017 show that fentanyl has by far been the most common drug linked to fatal overdoses. Again, we see the visible flattening of the overdoses in September.
@@ -277,8 +295,11 @@ df_factors_cumsum_2017 %>%
   geom_point(data = df_factors_cumsum_label_2017, aes(x = last_date, y = total, group = od_factor, color = od_factor), size = 3) +
   scale_color_discrete(guide = FALSE) +
   scale_y_continuous(expand = c(.01, .1)) +
-  labs(y = "Cumulative sum of fatal overdoses by overdose factor",
-       x = "")
+  labs(title = "Fatal overdoses by drug factor (2017)",
+       y = "Cumulative sum of fatal overdoses",
+       x = "",
+       subtitle = "Data from the WPRDC",
+       caption = "Conor Tompkins @conor_tompkins")
 ```
 
 Heroin and fentanyl have proven to be a particularly deadly combination. We can explore the combination of these drugs. This plot shows the cumulative number of fatal overdoses involving heroin.
@@ -291,9 +312,12 @@ df_factors %>%
          tag = "Heroin") %>% 
   ggplot(aes(x = date, y = n_cumsum)) +
   geom_line(size = 2) +
+  scale_y_continuous(label = comma) +
   labs(title = "Fatal overdoses involving heroin",
        x = "",
-       y = "Cumulative sum of fatal overdoses")
+       y = "Cumulative sum of fatal overdoses",
+       subtitle = "Data from the WPRDC",
+       caption = "Conor Tompkins @conor_tompkins")
 ```
 
 This plot shows the % of fatal heroin overdoses that also involve fentanyl. Again, we see that fentanyl arrived in Allegheny County in 2014, and quickly became tied to heroin. At its peak, over 75% of heroin overdoses involved fentanyl.
@@ -311,7 +335,9 @@ df_factors_heroin_fent %>%
   scale_y_continuous(labels = scales::percent) +
   labs(title = "Fatal heroin overdoses involving fentanyl",
        x = "",
-       y = "% involving fentantyl")
+       y = "% involving fentantyl",
+       subtitle = "Data from the WPRDC",
+       caption = "Conor Tompkins @conor_tompkins")
 ```
 
 
