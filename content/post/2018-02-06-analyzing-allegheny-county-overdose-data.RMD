@@ -53,6 +53,15 @@ df %>%
     filter(date <= "2017-09-01") -> df
 ```
 
+Let's look at what the data looks like. Each row represents an individual overdose.
+```{r view_dataframe, message=FALSE, warning=FALSE, paged.print=FALSE}
+df %>% 
+  select(-c(year, yday, month, mday, wday, starts_with("combined"))) %>% 
+  head() %>% 
+  kable("html") %>% 
+  kable_styling()
+```
+
 This chart shows the cumulative sum of all fatal overdoses in the timeframe of the dataset. This plot shows a visible uptick in the number of overdoses starting in 2015.
 ```{r cumulative sum, fig.height=9, fig.width=12}
 df %>% 
