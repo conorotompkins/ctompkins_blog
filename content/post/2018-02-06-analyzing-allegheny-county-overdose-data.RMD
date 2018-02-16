@@ -1,7 +1,7 @@
 ---
 title: "Analyzing Allegheny County Overdose Data"
 author: "Conor Tompkins"
-date: '2018-02-16'
+date: '2017-12-31'
 slug: analyzing-allegheny-county-overdose-data
 tags:
 - Pittsburgh
