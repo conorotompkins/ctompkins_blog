@@ -23,7 +23,7 @@ This is an analysis of potential data problems in the Pittsburgh Police Incident
 
 These are the R packages used in this analysis:
 
-```{r load libraries, message=FALSE, warning=FALSE}
+```{r load_libraries, message=FALSE, warning=FALSE}
 library(rmarkdown)
 library(knitr)
 library(tidyverse)
@@ -31,12 +31,14 @@ library(lubridate)
 library(viridis)
 library(ggmap)
 library(scales)
+
+theme_set(theme_bw())
 ```
 
 Refer to the [Exploratory Analysis post](http://ctompkins.netlify.com/2017/10/07/pittsburgh-crime-data/) for an intro on working with this data
 
-```{r read data into r, echo=FALSE, message=FALSE, warning=FALSE}
-df <- read_csv("https://raw.githubusercontent.com/conorotompkins/pgh-crime/master/archive-police-blotter.csv")
+```{r read data into r, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
+df <- read_csv("https://raw.githubusercontent.com/conorotompkins/pgh-crime/master/data/archive-police-blotter.csv")
 ```
 
 
@@ -248,10 +250,10 @@ df_zone_nbh <- df %>%
 ```{r zone vs nbh plot, fig.height=11, fig.width=6}
 ggplot(df_zone_nbh, aes(zone, reorder(neighborhood, n), fill = n)) +
   geom_tile(color = "grey") +
+  #coord_equal() +
   facet_wrap(~zone,
              nrow = 1,
              scales = "free_x") +
-  coord_equal() +
   labs(x = "Zone",
        y = "Neighborhood",
        title = "Pittsburgh Police Incident Data") +

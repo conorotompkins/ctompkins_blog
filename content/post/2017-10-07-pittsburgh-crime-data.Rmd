@@ -35,7 +35,7 @@ We will be using the following R packages for this analysis
 - ggmap
 
 Install these packages using the following code
-```{r install packages, eval = FALSE}
+```{r install_packages, eval=FALSE}
 install.packages(c("tidyverse", "lubridate", "viridis", "ggmap"))
 ```
 
@@ -51,7 +51,7 @@ library(ggmap)
 
 Then, read the data into R
 ```{r read data into r}
-df <- read_csv("https://raw.githubusercontent.com/conorotompkins/pgh-crime/master/archive-police-blotter.csv")
+df <- read_csv("https://raw.githubusercontent.com/conorotompkins/pgh-crime/master/data/archive-police-blotter.csv")
 ```
 readr::read_csv tells us how it interpreted the column classes, and alerted us that it was unable to load 6 rows from the data
 
@@ -122,8 +122,7 @@ How has the number of incidents changed over time?
 ```{r incidents over time, message=FALSE, warning=FALSE}
 df %>% 
   filter(zone %in% c(1:6)) %>% 
-  group_by(zone, date) %>% 
-  count() %>% 
+  count(zone, date) %>% 
   ggplot(aes(date, n, color = zone, fill = zone)) +
   geom_smooth() +
   scale_fill_viridis(discrete = TRUE) +
@@ -138,8 +137,7 @@ What does the trend look like if we just look at incidents since 2008?
 ```{r incidents over time 2008}
 df %>% 
   filter(zone %in% c(1:6), year >= 2008) %>% 
-  group_by(zone, date) %>% 
-  count() %>% 
+  count(zone, date) %>% 
   ggplot(aes(date, n, color = zone, fill = zone)) +
   geom_smooth() +
   scale_fill_viridis(discrete = TRUE) +
@@ -149,16 +147,14 @@ df %>%
 Which neighborhood has the most incidents?
 ```{r neighborhood incident count}
 df %>%
-  group_by(neighborhood) %>% 
-  count() %>% 
+  count(neighborhood) %>% 
   arrange(-n)
 ```
 
 Which incident descriptions are the most common?
 ```{r incident descriptions}
 df %>%
-  group_by(description) %>% 
-  count() %>% 
+  count(description) %>% 
   arrange(-n)
 ```
 Looks like there are many NA values
@@ -167,8 +163,7 @@ Have the number of marijuana-related incidents changed over time?
 ```{r marijuana incidents}
 pot_incidents <- df %>%
   filter(grepl("MARIJUANA", description) == TRUE) %>%
-  group_by(date) %>% 
-  count() 
+  count(date)
 
 #Plot the data
 ggplot(data = pot_incidents, aes(x = date, y = n)) +
