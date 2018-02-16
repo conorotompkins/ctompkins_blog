@@ -26,7 +26,7 @@ In this post, I will use R to perform an exploratory data analysis on this data.
 
 The first step is to load the libraries we will use, and to set the theme for all the plots.
 
-```{r load_libraries_settings, message=FALSE, warning=FALSE}
+```{r setup, message=FALSE, warning=FALSE}
 library(tidyverse)
 library(lubridate)
 library(scales)
@@ -39,7 +39,7 @@ library(kableExtra)
 theme_set(theme_bw(base_size = 18))
 ```
 
-Then, load the data that the WPRDC published. I've already done some preprocessing of the data to get it into shape. You can find that script [here](https://github.com/conorotompkins/allegheny_overdoses/blob/master/scripts/load_data.R)
+Then, load the data that the WPRDC published. I've already done some preprocessing of the data to get it into shape. You can find that script [here](https://github.com/conorotompkins/allegheny_overdoses/blob/master/scripts/load_data.R).
 ```{r load_df, message=FALSE, warning=FALSE, paged.print=FALSE}
 df <- read_csv("https://raw.githubusercontent.com/conorotompkins/allegheny_overdoses/master/data/overdose_df.csv")
 ```
@@ -143,14 +143,6 @@ df %>%
   group_by(year, month, mday) %>% 
   summarize(n = sum(n)) %>% 
   replace_na(list(n = 0)) -> df_tile
-
-#don't need to do this anymore
-##hack the data so NA and 0s aren't combined
-#df_tile$n[df_tile$year == 2017 & df_tile$month == "Sep" & df_tile$mday >= 1] <- NA
-#df_tile$n[df_tile$year == 2017 & df_tile$month %in% c("Oct", "Nov", "Dec")] <- NA
-##September, April, June, and November have 30 days
-#months_30 <- c("Sep", "Apr", "Jun", "Nov")
-#df_tile$n[df_tile$month %in% months_30 & df_tile$mday == 31] <- NA
 
 df_tile %>% 
   ggplot(aes(mday, month, fill = n)) +
@@ -358,5 +350,7 @@ df_factors_heroin_fent %>%
 
 ##Areas for further research
 Geographic analysis using the zip code data could expose more information about how communities are impacted by drug overdoses.
+
+Demographic analysis could be used to analyze how drug overdoses affect different parts of the population.
 
 The combination of heroin and fentanyl can be explored further. It would also be worth exploring whether there is any link between fentanyl and cocaine. More generally, the correlation between the various drugs could be explored using network analysis.
