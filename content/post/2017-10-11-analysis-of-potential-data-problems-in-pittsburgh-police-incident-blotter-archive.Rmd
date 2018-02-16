@@ -88,7 +88,7 @@ df <- df %>%
 
 Does the Zone the incident is assigned to match the geolocations the incident is reported at?
 
-```{r create city map 11, message=FALSE, warning=FALSE}
+```{r create city map 11, message=FALSE, warning=FALSE, cache=TRUE}
 city_map_11 <-  get_map(location = "Oakland, Pittsburgh, PA",
                zoom = 11,
                maptype = "toner", 
@@ -124,7 +124,7 @@ paste0(round(22716 / nrow(df_map_zones), 2) * 100, "%")
 ```
 
 Faceting the data by Zone to separate it, the data looks less accurate
-```{r create city map 12, message=FALSE, warning=FALSE}
+```{r create city map 12, message=FALSE, warning=FALSE, cache=TRUE}
 city_map_12 <-  get_map(location = "Oakland, Pittsburgh, PA",
                zoom = 12,
                maptype = "toner", 
@@ -151,7 +151,7 @@ city_map_12 +
 
 The reporting problems appear most prominently in 2005 and 2006
 
-```{r create zone year facet map, message=FALSE, warning=FALSE}
+```{r create zone year facet map, message=FALSE, warning=FALSE, cache=TRUE}
 city_map_facets <-  ggmap(get_map("North Oakland, Pittsburgh, PA", 
                      zoom = 12,
                      maptype = "toner-lite", 
@@ -422,7 +422,7 @@ Brookline has the most incidents reported in the incorrect zone
 Zone 3 is a major driver of incorrect Zone assignments
 
 Again, the reporting problems appear most prominently in 2005 and 2006
-```{r create nbh year facet map, message=FALSE, warning=FALSE}
+```{r create nbh year facet map, message=FALSE, warning=FALSE, cache=TRUE}
 city_map_facets <-  ggmap(get_map("North Oakland, Pittsburgh, PA", 
                                   zoom = 12,
                                   maptype = "toner-lite", 

@@ -173,7 +173,7 @@ ggplot(data = pot_incidents, aes(x = date, y = n)) +
 Let's look at how the data looks on a map
 
 First, create the map
-```{r create map, message=FALSE, warning=FALSE}
+```{r create map, message=FALSE, warning=FALSE, cache=TRUE}
 city_map <-  get_map(location = "Oakland, Pittsburgh, PA",
                zoom = 12,
                maptype = "toner", 
