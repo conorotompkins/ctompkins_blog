@@ -24,7 +24,9 @@ library(tidyverse)
 library(lubridate)
 library(viridis)
 library(ggmap)
-library(scales)</code></pre>
+library(scales)
+
+theme_set(theme_bw())</code></pre>
 <p>Refer to the <a href="http://ctompkins.netlify.com/2017/10/07/pittsburgh-crime-data/">Exploratory Analysis post</a> for an intro on working with this data</p>
 <div id="zone-reporting-consistency" class="section level1">
 <h1>Zone reporting consistency</h1>
@@ -50,7 +52,7 @@ city_map_11 &lt;- ggmap(city_map_11)</code></pre>
   theme(legend.position = &quot;bottom&quot;,
         legend.direction = &quot;horizontal&quot;,
         axis.text = element_blank())</code></pre>
-<pre><code>## Warning: Removed 22714 rows containing missing values (geom_point).</code></pre>
+<pre><code>## Warning: Removed 22717 rows containing missing values (geom_point).</code></pre>
 <p><img src="/post/2017-10-11-analysis-of-potential-data-problems-in-pittsburgh-police-incident-blotter-archive_files/figure-html/create%20zone%20map-1.png" width="672" /></p>
 <p>One note of concern is that 5% of the data is outside the x,y coordinates in this map</p>
 <pre class="r"><code>paste0(round(22716 / nrow(df_map_zones), 2) * 100, &quot;%&quot;)</code></pre>
@@ -75,7 +77,7 @@ city_map_12 &lt;- ggmap(city_map_12)</code></pre>
   theme(legend.position = &quot;bottom&quot;,
         legend.direction = &quot;horizontal&quot;,
         axis.text = element_blank())</code></pre>
-<pre><code>## Warning: Removed 25078 rows containing missing values (geom_point).</code></pre>
+<pre><code>## Warning: Removed 25521 rows containing missing values (geom_point).</code></pre>
 <p><img src="/post/2017-10-11-analysis-of-potential-data-problems-in-pittsburgh-police-incident-blotter-archive_files/figure-html/faceted%20zone%20map-1.png" width="672" /></p>
 <p>The reporting problems appear most prominently in 2005 and 2006</p>
 <pre class="r"><code>city_map_facets &lt;-  ggmap(get_map(&quot;North Oakland, Pittsburgh, PA&quot;, 
@@ -131,7 +133,7 @@ df_nbh &lt;- df %&gt;%
   guides(alpha = FALSE,
          color = FALSE) +
   theme(axis.text = element_blank())</code></pre>
-<pre><code>## Warning: Removed 4820 rows containing missing values (geom_point).</code></pre>
+<pre><code>## Warning: Removed 4846 rows containing missing values (geom_point).</code></pre>
 <p><img src="/post/2017-10-11-analysis-of-potential-data-problems-in-pittsburgh-police-incident-blotter-archive_files/figure-html/nbh%20map-1.png" width="672" /></p>
 <p>The borders between Neighborhoods are significantly less clearly delineated than the borders for the Zones were</p>
 <p>How does the data look when it is faceted by Neighborhood?</p>
@@ -145,7 +147,7 @@ df_nbh &lt;- df %&gt;%
   guides(color = FALSE) +
   theme(axis.text = element_blank(),
         strip.text = element_text(size = 6))</code></pre>
-<pre><code>## Warning: Removed 4820 rows containing missing values (geom_point).</code></pre>
+<pre><code>## Warning: Removed 4846 rows containing missing values (geom_point).</code></pre>
 <p><img src="/post/2017-10-11-analysis-of-potential-data-problems-in-pittsburgh-police-incident-blotter-archive_files/figure-html/nbh%20facet%20map-1.png" width="672" /></p>
 <p>There appears to be significant data quality issues with the Neighborhood designations</p>
 <p>Many Neighborhoods have incidents reported in multiple Zones</p>
@@ -158,10 +160,10 @@ df_nbh &lt;- df %&gt;%
   mutate(neighborhood = factor(neighborhood))</code></pre>
 <pre class="r"><code>ggplot(df_zone_nbh, aes(zone, reorder(neighborhood, n), fill = n)) +
   geom_tile(color = &quot;grey&quot;) +
+  #coord_equal() +
   facet_wrap(~zone,
              nrow = 1,
              scales = &quot;free_x&quot;) +
-  coord_equal() +
   labs(x = &quot;Zone&quot;,
        y = &quot;Neighborhood&quot;,
        title = &quot;Pittsburgh Police Incident Data&quot;) +
@@ -192,44 +194,44 @@ df_nbh &lt;- df %&gt;%
 <pre class="r"><code>df_correct_zone %&gt;% 
   filter(correct_zone == &quot;1&quot;)</code></pre>
 <pre><code>## # A tibble: 18 x 2
-##    correct_zone           neighborhood
-##           &lt;chr&gt;                  &lt;chr&gt;
-##  1            1       Allegheny Center
-##  2            1         Allegheny West
-##  3            1       Brighton Heights
-##  4            1   California-Kirkbride
-##  5            1      Central Northside
-##  6            1                Chateau
-##  7            1         East Allegheny
-##  8            1               Fineview
-##  9            1             Manchester
-## 10            1     Marshall-Shadeland
-## 11            1            North Shore
-## 12            1      Northview Heights
-## 13            1            Perry North
-## 14            1            Perry South
-## 15            1          Spring Garden
-## 16            1  Spring Hill-City View
-## 17            1            Summer Hill
-## 18            1 Troy Hill-Herrs Island</code></pre>
+##    correct_zone neighborhood          
+##    &lt;chr&gt;        &lt;chr&gt;                 
+##  1 1            Allegheny Center      
+##  2 1            Allegheny West        
+##  3 1            Brighton Heights      
+##  4 1            California-Kirkbride  
+##  5 1            Central Northside     
+##  6 1            Chateau               
+##  7 1            East Allegheny        
+##  8 1            Fineview              
+##  9 1            Manchester            
+## 10 1            Marshall-Shadeland    
+## 11 1            North Shore           
+## 12 1            Northview Heights     
+## 13 1            Perry North           
+## 14 1            Perry South           
+## 15 1            Spring Garden         
+## 16 1            Spring Hill-City View 
+## 17 1            Summer Hill           
+## 18 1            Troy Hill-Herrs Island</code></pre>
 <p>Testing this method for Zone 2:</p>
 <pre class="r"><code>df_correct_zone %&gt;% 
   filter(correct_zone == &quot;2&quot;)</code></pre>
 <pre><code>## # A tibble: 12 x 2
-##    correct_zone                neighborhood
-##           &lt;chr&gt;                       &lt;chr&gt;
-##  1            2           Bedford Dwellings
-##  2            2                       Bluff
-##  3            2       Central Lawrenceville
-##  4            2            Crawford-Roberts
-##  5            2 Golden Triangle/Civic Arena
-##  6            2         Lower Lawrenceville
-##  7            2                 Middle Hill
-##  8            2                 Polish Hill
-##  9            2              Strip District
-## 10            2             Terrace Village
-## 11            2                  Upper Hill
-## 12            2         Upper Lawrenceville</code></pre>
+##    correct_zone neighborhood               
+##    &lt;chr&gt;        &lt;chr&gt;                      
+##  1 2            Bedford Dwellings          
+##  2 2            Bluff                      
+##  3 2            Central Lawrenceville      
+##  4 2            Crawford-Roberts           
+##  5 2            Golden Triangle/Civic Arena
+##  6 2            Lower Lawrenceville        
+##  7 2            Middle Hill                
+##  8 2            Polish Hill                
+##  9 2            Strip District             
+## 10 2            Terrace Village            
+## 11 2            Upper Hill                 
+## 12 2            Upper Lawrenceville</code></pre>
 <p>This approximation appears to be correct</p>
 <p>Then, calculate how many of a Neighborhood’s incidents were reported in the correct zone</p>
 <pre class="r"><code>df_zones_nbh &lt;- df %&gt;% 
@@ -391,23 +393,23 @@ df_nbh &lt;- df %&gt;%
   count()</code></pre>
 <pre><code>## # A tibble: 1 x 2
 ## # Groups:   zone [1]
-##    zone     n
+##   zone      n
 ##   &lt;chr&gt; &lt;int&gt;
-## 1     6  2889</code></pre>
+## 1 6      2889</code></pre>
 <p>This shows that there are 2,889 incidents in this period for Zone 6</p>
 <pre class="r"><code>df %&gt;%
   filter(zone == 6, year &lt;= 2008) %&gt;% 
   select(zone, date, description) %&gt;% 
   head()</code></pre>
 <pre><code>## # A tibble: 6 x 3
-##    zone       date                  description
-##   &lt;chr&gt;     &lt;date&gt;                        &lt;chr&gt;
-## 1     6 2005-07-09                         &lt;NA&gt;
-## 2     6 2005-10-05                         &lt;NA&gt;
-## 3     6 2005-10-05               IDENTITY THEFT
-## 4     6 2005-10-28                         &lt;NA&gt;
-## 5     6 2005-04-26 INVOLUNTARY DEV SEXUAL INTER
-## 6     6 2005-03-24                         &lt;NA&gt;</code></pre>
+##   zone  date       description                 
+##   &lt;chr&gt; &lt;date&gt;     &lt;chr&gt;                       
+## 1 6     2005-07-09 &lt;NA&gt;                        
+## 2 6     2005-10-05 &lt;NA&gt;                        
+## 3 6     2005-10-05 IDENTITY THEFT              
+## 4 6     2005-10-28 &lt;NA&gt;                        
+## 5 6     2005-04-26 INVOLUNTARY DEV SEXUAL INTER
+## 6 6     2005-03-24 &lt;NA&gt;</code></pre>
 <p>Where did these incidents occur?</p>
 <pre class="r"><code>z6_map &lt;-  get_map(location = &quot;Mount Washington, Pittsburgh, PA&quot;,
                zoom = 12,
