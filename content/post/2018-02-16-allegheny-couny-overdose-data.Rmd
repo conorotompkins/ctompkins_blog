@@ -243,7 +243,8 @@ df %>%
 df_factors %>% 
   gather(od_factor, od_flag, starts_with("od_")) %>% 
   #gather(od_factor, od_flag, c(od_heroin, od_cocaine, od_fentanyl, od_alcohol)) %>% 
-  filter(od_flag == TRUE) -> df_factors_long
+  filter(od_flag == TRUE) %>% 
+  mutate(od_factor = str_to_title(str_replace(od_factor, "od_", ""))) -> df_factors_long
 
 #create od_factor df
 df_factors_long %>% 
@@ -261,7 +262,7 @@ df_factors_long %>%
 #plot cumulative od_factor
 ggplot(data = df_factors_cumsum, aes(x = date, y = od_cumsum, color = od_factor)) +
   geom_line(size = 1.5) +
-  geom_label_repel(data = df_factors_cumsum_label, aes(x = last_date, y = total, label = str_replace(od_factor, "od_", ""), group = od_factor)) +
+  geom_label_repel(data = df_factors_cumsum_label, aes(x = last_date, y = total, label = od_factor, group = od_factor)) +
   geom_point(data = df_factors_cumsum_label, aes(x = last_date, y = total, group = od_factor, color = od_factor), size = 3) +
   scale_color_discrete(guide = FALSE) +
   scale_y_continuous(expand = c(.01, .1), label = comma) +
@@ -290,7 +291,7 @@ df_factors_long %>%
 df_factors_cumsum_2017 %>% 
   ggplot(aes(date, od_cumsum, color = od_factor)) +
   geom_line(size = 2) +
-  geom_label_repel(data = df_factors_cumsum_label_2017, aes(x = last_date, y = total, label = str_replace(od_factor, "od_", ""), group = od_factor)) +
+  geom_label_repel(data = df_factors_cumsum_label_2017, aes(x = last_date, y = total, label = od_factor, group = od_factor)) +
   geom_point(data = df_factors_cumsum_label_2017, aes(x = last_date, y = total, group = od_factor, color = od_factor), size = 3) +
   scale_color_discrete(guide = FALSE) +
   scale_y_continuous(expand = c(.01, .1)) +
