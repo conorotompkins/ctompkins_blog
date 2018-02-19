@@ -1,8 +1,8 @@
 ---
-title: Allegheny Couny Overdose Data
+title: Allegheny County Overdose Data
 author: Conor Tompkins
 date: '2018-02-16'
-slug: allegheny-couny-overdose-data
+slug: allegheny-county-overdose-data
 categories: []
 tags: []
 ---
