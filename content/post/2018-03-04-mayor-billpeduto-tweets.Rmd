@@ -1,0 +1,13 @@
+---
+title: Mayor @billpeduto tweets
+author: Conor Tompkins
+date: '2018-03-04'
+slug: mayor-billpeduto-tweets
+categories:
+  - Pittsburgh
+  - R
+tags:
+  - Pittsburgh
+  - R Markdown
+---
+
