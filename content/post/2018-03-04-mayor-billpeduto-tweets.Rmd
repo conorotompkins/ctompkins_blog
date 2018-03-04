@@ -3,6 +3,7 @@ title: Mayor @billpeduto tweets
 author: Conor Tompkins
 date: '2018-03-04'
 slug: mayor-billpeduto-tweets
+draft: true
 categories:
   - Pittsburgh
   - R
@@ -98,15 +99,15 @@ df_bill %>%
   count(wday, hour) %>% 
   complete(wday, hour = 0:23) %>% 
   replace_na(list(n = 0)) %>% 
-  ggplot(aes(wday, hour, fill = n)) +
+  ggplot(aes(hour, wday, fill = n)) +
   geom_tile() +
   coord_equal() +
-  scale_y_reverse(expand = c(0,0),
+  scale_x_continuous(expand = c(0,0),
                   breaks = seq(0, 24, by = 3)) +
-  scale_x_discrete(expand = c(0,0)) +
+  scale_y_discrete(expand = c(0,0)) +
   scale_fill_viridis(option = 3) +
-  labs(x = "",
-       y = "Hour") +
+  labs(x = "Hour",
+       y = "") +
   guides(fill = guide_colorbar("Number of tweets"))
 ```
 
@@ -168,7 +169,7 @@ tweets_bill %>%
 ```
 
 ```{r, visualize_bigrams}
-visualize_bigrams(tweets_bill, 3,
+visualize_bigrams(tweets_bill, 5,
                   title = "@BillPeduto tweets",
                   subtitle = "Bigram network",
                   caption = "@conor_tompkins")
