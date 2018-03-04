@@ -172,7 +172,7 @@ tweets_bill %>%
 visualize_bigrams(tweets_bill, 5,
                   title = "@BillPeduto tweets",
                   subtitle = "Bigram network",
-                  caption = "@conor_tompkins")
+                  caption = caption)
 ```
 
 ```{r, visualize_word_correlations}
