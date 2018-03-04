@@ -12,6 +12,9 @@ tags:
   - R Markdown
 ---
 
+* Add narrative text
+* Fix bigram_visualization size
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(cache=TRUE,
                       message = FALSE,
