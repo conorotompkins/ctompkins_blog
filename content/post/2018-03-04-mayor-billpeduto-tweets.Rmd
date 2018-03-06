@@ -13,7 +13,9 @@ tags:
 ---
 
 * Add narrative text
-* Fix bigram_visualization size
+
+
+Pittsburgh Mayor Bill Peduto uses Twitter to communicate with his constituents and express his political opinions (and comment about Pittsburgh sports). I will use various R packages (mainly the tidyverse, tidytext, and rtweet) to analyze how the Mayor uses Twitter.
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(cache=TRUE,
@@ -24,6 +26,11 @@ knitr::opts_chunk$set(cache=TRUE,
 
 ```{r environment}
 library(tidyverse)
+library(tidytext)
+library(ggraph)
+library(igraph)
+library(widyr)
+library(SnowballC)
 library(lubridate)
 library(viridis)
 library(scales)
@@ -36,6 +43,13 @@ title <- "Mayor @billpeduto tweets"
 caption <- "@conor_tompkins"
 ```
 
+First, we will download @BillPeduto's most recent tweets
+
+```{r download_tweets, eval=FALSE}
+tweets_bill <- get_timelines("BillPeduto", n = 3200)
+```
+
+I have already downloaded the data, so I will load it from my GitHub repo. I will also do some data munging to make the data easier to work with.
 ```{r load_data}
 url <- "https://raw.githubusercontent.com/conorotompkins/pittsburgh_twitter/master/data/df_billpeduto.csv"
 
@@ -55,6 +69,7 @@ df_bill[1:5, 1:5] %>%
   kable("html") %>% 
   kable_styling()
 ```
+
 
 ```{r date_smoothed}
 df_bill %>% 
@@ -156,12 +171,27 @@ df_bill %>%
 
 
 ```{r, load_text_analysis_environment}
-source("https://raw.githubusercontent.com/conorotompkins/pittsburgh_twitter/master/scripts/tidytext_functions.R")
+#source("https://raw.githubusercontent.com/conorotompkins/pittsburgh_twitter/master/scripts/tidytext_functions.R")
 set.seed(1234)
 df_bill <- read_csv("https://raw.githubusercontent.com/conorotompkins/pittsburgh_twitter/master/data/bill_peduto_tweets.tweets.csv")
 ```
 
 ```{r munge_billpeduto_tweets}
+count_twitter_bigrams <- function(dataset, custom_stopwords) {
+  replace_reg <- "https://t.co/[A-Za-z\\d]+|http://[A-Za-z\\d]+|&amp;|&lt;|&gt;|RT|https|'s"
+  
+  dataset %>%
+    filter(is_quote == FALSE, is_retweet == FALSE) %>% 
+    mutate(text = str_replace_all(text, replace_reg, "")) %>%
+    unnest_tokens(bigram, text, token = "ngrams", n = 2) %>%
+    separate(bigram, c("word1", "word2"), sep = " ") %>%
+    filter(!word1 %in% stop_words$word,
+           !word2 %in% stop_words$word,
+           !word1 %in% custom_stopwords,
+           !word2 %in% custom_stopwords) %>%
+    count(word1, word2, sort = TRUE)
+}
+
 bill_stop_words <- c("t.co", "https", "amp")
 
 tweets_bill <- count_twitter_bigrams(df_bill, bill_stop_words)
@@ -171,17 +201,75 @@ tweets_bill %>%
   kable_styling()
 ```
 
-```{r, visualize_bigrams}
-visualize_bigrams(tweets_bill, 5,
+```{r, visualize_bigrams, fig.height=12, fig.width=12}
+visualize_bigrams <- function(bigrams, minimum, text_size = 3, title = NULL, subtitle = NULL, caption = NULL) {
+  set.seed(2016)
+  a <- grid::arrow(type = "closed", 
+                   length = unit(.1, "inches"))
+  
+  bigrams %>%
+    filter(n >= minimum) %>% 
+    graph_from_data_frame() %>%
+    ggraph(layout = "fr") +
+    geom_node_point(color = "lightblue", size = 3) +
+    geom_node_text(aes(label = name), size = text_size, vjust = 1, hjust = 1) +
+    geom_edge_link(aes(edge_alpha = n, edge_width = n), show.legend = TRUE, arrow = a, end_cap = circle(.25, 'inches')) +
+    scale_edge_width_continuous("Count", range = c(.5, 1.5)) +
+    scale_edge_alpha_continuous("Count", range = c(.3, .7)) +
+    labs(title = title,
+         subtitle = subtitle,
+         caption = caption) +
+    theme_void(base_size = 18)
+}
+
+visualize_bigrams(tweets_bill, 
+                  minimum = 4,
+                  text_size = 5,
                   title = "@BillPeduto tweets",
                   subtitle = "Bigram network",
                   caption = caption)
 ```
 
-```{r, visualize_word_correlations}
+```{r visualize_word_correlations, fig.height=12, fig.width=12}
+word_correlations <- function(dataframe, minimum, custom_stopwords){
+  replace_reg <- "https://t.co/[A-Za-z\\d]+|http://[A-Za-z\\d]+|&amp;|&lt;|&gt;|RT|https"
+  unnest_reg <- "([^A-Za-z_\\d#@']|'(?![A-Za-z_\\d#@]))"
+  dataframe %>% 
+  filter(is_quote == FALSE, is_retweet == FALSE) %>% 
+  select(status_id, text) %>% 
+  mutate(section = row_number() %/% 10) %>%
+  filter(section > 0) %>%
+  mutate(text = str_replace_all(text, replace_reg, "")) %>%
+  unnest_tokens(word, text, token = "regex", pattern = unnest_reg) %>%
+  filter(!word %in% stop_words$word,
+         !word %in% custom_stopwords,
+         str_detect(word, "[a-z]")) %>% 
+  mutate(word = str_replace(word, "'", ""),
+         word = str_replace(word, "'", ""),
+         word = SnowballC::wordStem(word)) %>% 
+  group_by(word) %>% 
+  filter(n() >= minimum) %>%
+  pairwise_cor(word, section, sort = TRUE)
+}
+
 bill_stopwords <- c("t.co", "https", "amp")
 
 bill_words <- word_correlations(df_bill, 20, bill_stopwords)
+
+visualize_word_correlations <- function(dataframe, title, subtitle, caption){
+  dataframe %>% 
+  filter(correlation > .05) %>%
+  graph_from_data_frame() %>%
+  ggraph(layout = "fr") +
+  geom_edge_link(aes(edge_alpha = correlation, edge_width = correlation), show.legend = FALSE) +
+  geom_node_point(color = "lightblue", size = 5) +
+  geom_node_label(aes(label = name), size = 5, repel = FALSE) +
+  scale_edge_alpha_continuous(range = c(.1, .5)) +
+  theme_void(base_size = 18) +
+  labs(title = title,
+       subtitle = subtitle,
+       caption = caption)
+}
 
 visualize_word_correlations(bill_words, 
                             title = "@BillPeduto tweets",
