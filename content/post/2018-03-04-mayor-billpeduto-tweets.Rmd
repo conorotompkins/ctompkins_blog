@@ -92,12 +92,13 @@ df_bill %>%
   geom_point(aes(wday, median), size = 5) +
   scale_color_viridis(name = "Day of the week", discrete = TRUE) +
   labs(title = title,
+       subtitle = "One small dot = one day, large dot = median for weekday",
        x = "",
        y = "Number of tweets in a given day",
        caption = caption) +
-  theme_bw(base_size = 18)
+  theme_bw(base_family = 18)
 ```
-The Mayor does most of his tweeting around lunchtime, though he is known to tweet in the late evening as well.
+The Mayor does most of his tweeting around lunchtime and in the late evening.
 ```{r hour}
 df_bill %>% 
   count(hour) %>% 
@@ -119,7 +120,7 @@ df_bill %>%
         legend.position = "bottom",
         legend.text = element_text(size = 7))
 ```
-This view combines the Day of the week and hour variables, and confirms what we observed when looking at the variables independently.
+This view combines the day of the week and hour variables, and confirms what we observed when looking at the variables independently.
 ```{r heatmap}
 df_bill %>% 
   mutate(wday = factor(wday, levels = rev(levels(df_bill$wday)))) %>% 
@@ -188,7 +189,7 @@ The R package Tidytext makes it very easy to parse text data and pull insights f
 set.seed(1234)
 df_bill <- read_csv("https://raw.githubusercontent.com/conorotompkins/pittsburgh_twitter/master/data/bill_peduto_tweets.tweets.csv")
 ```
-By separating the Mayor's tweets into bigrams (two-word chunks), we can identify which words are used together. This code cuts the tweets into bigrams and counts their occurences.
+By separating the Mayor's tweets into bigrams (two-word chunks), we can identify which words are used together. This code cuts the tweets into bigrams and counts their occurences. I exclude retweets and quotes from this analysis.
 ```{r munge_billpeduto_tweets}
 count_twitter_bigrams <- function(dataset, custom_stopwords) {
   replace_reg <- "https://t.co/[A-Za-z\\d]+|http://[A-Za-z\\d]+|&amp;|&lt;|&gt;|RT|https|'s"
@@ -214,7 +215,7 @@ tweets_bill %>%
   kable("html") %>% 
   kable_styling()
 ```
-This network graph shows which words the Mayor uses together frequently. "public" + "safety", and "affordable" + "housing" are the main standouts. I think this plot pretty accurately captures the policy issues the Mayor focuses on.
+This network graph shows which words the Mayor uses together frequently. "public" + "safety", and "affordable" + "housing" are the main standouts. I think this plot pretty accurately captures the topics the Mayor tweets about.
 ```{r, visualize_bigrams, fig.height=12, fig.width=12}
 visualize_bigrams <- function(bigrams, minimum, text_size = 3, title = NULL, subtitle = NULL, caption = NULL) {
   set.seed(2016)
@@ -270,7 +271,9 @@ bill_stopwords <- c("t.co", "https", "amp")
 
 bill_words <- word_correlations(df_bill, minimum = 10, custom_stopwords = bill_stopwords)
 ```
-This plot shows which words are correlated highly with each other. Some words are "stemmed" (shortened/modified), to capture very similar words, like "business" and "businesses". "amazon" and "hq2" are used together overwhelmingly. The "pwsa" + "water" + "decad" combination indicate the [ongoing water quality problems](http://wesa.fm/post/struggling-provide-safe-clean-drinking-water-pennsylvania#stream/0), and plans for reinvestment in the infrastructure.
+This plot shows which words are correlated highly with each other. Some words are "stemmed" (shortened and/or modified), to capture very similar words. For example, "business" and "businesses" could be stemmed to "busine".
+
+"amazon" and "hq2" are used together overwhelmingly. The "pwsa" + "water" + "decad" combination indicate the [ongoing water quality problems](http://wesa.fm/post/struggling-provide-safe-clean-drinking-water-pennsylvania#stream/0), and the plans to reinvest in the infrastructure. This plot shows how some of the policy issues the Mayor focuses on are connected.
 ```{r, visualize_word_correlations, fig.height=12, fig.width=12}
 visualize_word_correlations <- function(dataframe, title, subtitle, caption){
   dataframe %>% 
