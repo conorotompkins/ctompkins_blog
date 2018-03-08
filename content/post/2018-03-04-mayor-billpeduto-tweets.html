@@ -180,7 +180,8 @@ FALSE
   labs(title = title,
        x = &quot;&quot;,
        y = &quot;Number of tweets in a given day&quot;,
-       caption = caption)</code></pre>
+       caption = caption) +
+  theme_bw(base_size = 18)</code></pre>
 <p><img src="/post/2018-03-04-mayor-billpeduto-tweets_files/figure-html/Day%20of%20the%20week-1.png" width="672" /> The Mayor does most of his tweeting around lunchtime, though he is known to tweet in the late evening as well.</p>
 <pre class="r"><code>df_bill %&gt;% 
   count(hour) %&gt;% 
