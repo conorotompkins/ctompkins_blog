@@ -168,7 +168,7 @@ FALSE
        x = &quot;&quot;,
        y = &quot;Number of tweets&quot;,
        caption = caption)</code></pre>
-<p><img src="/post/2018-03-04-mayor-billpeduto-tweets_files/figure-html/date_smoothed-1.png" width="672" /> The Mayor tweets the most on Day of the weeks; Tuesday has the highest median number of tweets. The weekends see fewer tweets, and Saturday and Sunday are very similar.</p>
+<p><img src="/post/2018-03-04-mayor-billpeduto-tweets_files/figure-html/date_smoothed-1.png" width="672" /> The Mayor tweets the most on weekdays; Tuesday has the highest median number of tweets. The weekends see fewer tweets, and Saturday and Sunday are very similar.</p>
 <pre class="r"><code>df_bill %&gt;% 
   count(wday, date) %&gt;% 
   group_by(wday) %&gt;% 
