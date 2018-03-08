@@ -178,11 +178,12 @@ FALSE
   geom_point(aes(wday, median), size = 5) +
   scale_color_viridis(name = &quot;Day of the week&quot;, discrete = TRUE) +
   labs(title = title,
+       subtitle = &quot;One small dot = one day, large dot = median for weekday&quot;,
        x = &quot;&quot;,
        y = &quot;Number of tweets in a given day&quot;,
        caption = caption) +
-  theme_bw(base_size = 18)</code></pre>
-<p><img src="/post/2018-03-04-mayor-billpeduto-tweets_files/figure-html/Day%20of%20the%20week-1.png" width="672" /> The Mayor does most of his tweeting around lunchtime, though he is known to tweet in the late evening as well.</p>
+  theme_bw(base_family = 18)</code></pre>
+<p><img src="/post/2018-03-04-mayor-billpeduto-tweets_files/figure-html/Day%20of%20the%20week-1.png" width="672" /> The Mayor does most of his tweeting around lunchtime and in the late evening.</p>
 <pre class="r"><code>df_bill %&gt;% 
   count(hour) %&gt;% 
   ggplot(aes(hour, y = 1, fill = n)) +
@@ -202,7 +203,7 @@ FALSE
         axis.ticks.y = element_blank(),
         legend.position = &quot;bottom&quot;,
         legend.text = element_text(size = 7))</code></pre>
-<p><img src="/post/2018-03-04-mayor-billpeduto-tweets_files/figure-html/hour-1.png" width="672" /> This view combines the Day of the week and hour variables, and confirms what we observed when looking at the variables independently.</p>
+<p><img src="/post/2018-03-04-mayor-billpeduto-tweets_files/figure-html/hour-1.png" width="672" /> This view combines the day of the week and hour variables, and confirms what we observed when looking at the variables independently.</p>
 <pre class="r"><code>df_bill %&gt;% 
   mutate(wday = factor(wday, levels = rev(levels(df_bill$wday)))) %&gt;% 
   count(wday, hour) %&gt;% 
@@ -265,7 +266,7 @@ df_bill_tweet_types_month_year %&gt;%
 <p>The R package Tidytext makes it very easy to parse text data and pull insights from it. It interfaces very easily with ggraph, which creates network graphs.</p>
 <pre class="r"><code>set.seed(1234)
 df_bill &lt;- read_csv(&quot;https://raw.githubusercontent.com/conorotompkins/pittsburgh_twitter/master/data/bill_peduto_tweets.tweets.csv&quot;)</code></pre>
-<p>By separating the Mayor’s tweets into bigrams (two-word chunks), we can identify which words are used together. This code cuts the tweets into bigrams and counts their occurences.</p>
+<p>By separating the Mayor’s tweets into bigrams (two-word chunks), we can identify which words are used together. This code cuts the tweets into bigrams and counts their occurences. I exclude retweets and quotes from this analysis.</p>
 <pre class="r"><code>count_twitter_bigrams &lt;- function(dataset, custom_stopwords) {
   replace_reg &lt;- &quot;https://t.co/[A-Za-z\\d]+|http://[A-Za-z\\d]+|&amp;amp;|&amp;lt;|&amp;gt;|RT|https|&#39;s&quot;
   
@@ -372,7 +373,7 @@ cities
 </tr>
 </tbody>
 </table>
-<p>This network graph shows which words the Mayor uses together frequently. “public” + “safety”, and “affordable” + “housing” are the main standouts. I think this plot pretty accurately captures the policy issues the Mayor focuses on.</p>
+<p>This network graph shows which words the Mayor uses together frequently. “public” + “safety”, and “affordable” + “housing” are the main standouts. I think this plot pretty accurately captures the topics the Mayor tweets about.</p>
 <pre class="r"><code>visualize_bigrams &lt;- function(bigrams, minimum, text_size = 3, title = NULL, subtitle = NULL, caption = NULL) {
   set.seed(2016)
   a &lt;- grid::arrow(type = &quot;closed&quot;, 
@@ -424,7 +425,8 @@ visualize_bigrams(tweets_bill,
 bill_stopwords &lt;- c(&quot;t.co&quot;, &quot;https&quot;, &quot;amp&quot;)
 
 bill_words &lt;- word_correlations(df_bill, minimum = 10, custom_stopwords = bill_stopwords)</code></pre>
-<p>This plot shows which words are correlated highly with each other. Some words are “stemmed” (shortened/modified), to capture very similar words, like “business” and “businesses”. “amazon” and “hq2” are used together overwhelmingly. The “pwsa” + “water” + “decad” combination indicate the <a href="http://wesa.fm/post/struggling-provide-safe-clean-drinking-water-pennsylvania#stream/0">ongoing water quality problems</a>, and plans for reinvestment in the infrastructure.</p>
+<p>This plot shows which words are correlated highly with each other. Some words are “stemmed” (shortened and/or modified), to capture very similar words. For example, “business” and “businesses” could be stemmed to “busine”.</p>
+<p>“amazon” and “hq2” are used together overwhelmingly. The “pwsa” + “water” + “decad” combination indicate the <a href="http://wesa.fm/post/struggling-provide-safe-clean-drinking-water-pennsylvania#stream/0">ongoing water quality problems</a>, and the plans to reinvest in the infrastructure. This plot shows how some of the policy issues the Mayor focuses on are connected.</p>
 <pre class="r"><code>visualize_word_correlations &lt;- function(dataframe, title, subtitle, caption){
   dataframe %&gt;% 
   filter(correlation &gt; .3) %&gt;%
