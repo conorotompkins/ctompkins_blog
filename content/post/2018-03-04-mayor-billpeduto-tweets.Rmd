@@ -81,7 +81,7 @@ df_bill %>%
        y = "Number of tweets",
        caption = caption)
 ```
-The Mayor tweets the most on Day of the weeks; Tuesday has the highest median number of tweets. The weekends see fewer tweets, and Saturday and Sunday are very similar.
+The Mayor tweets the most on weekdays; Tuesday has the highest median number of tweets. The weekends see fewer tweets, and Saturday and Sunday are very similar.
 ```{r Day of the week}
 df_bill %>% 
   count(wday, date) %>% 
