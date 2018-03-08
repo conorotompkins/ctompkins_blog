@@ -94,7 +94,8 @@ df_bill %>%
   labs(title = title,
        x = "",
        y = "Number of tweets in a given day",
-       caption = caption)
+       caption = caption) +
+  theme_bw(base_size = 18)
 ```
 The Mayor does most of his tweeting around lunchtime, though he is known to tweet in the late evening as well.
 ```{r hour}
