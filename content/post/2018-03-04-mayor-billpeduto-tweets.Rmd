@@ -12,16 +12,15 @@ tags:
   - R Markdown
 ---
 
-* Add narrative text
+Pittsburgh Mayor Bill Peduto uses Twitter to communicate with his constituents, express his political opinions, and comment about Pittsburgh sports. I will use various R packages (mainly the tidyverse, tidytext, and rtweet) to analyze how the Mayor uses Twitter.
 
-
-Pittsburgh Mayor Bill Peduto uses Twitter to communicate with his constituents and express his political opinions (and comment about Pittsburgh sports). I will use various R packages (mainly the tidyverse, tidytext, and rtweet) to analyze how the Mayor uses Twitter.
-
+Before getting started, we need to load the packages required for this analysis:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(cache=TRUE,
                       message = FALSE,
                       warning = FALSE,
                       paged.print = FALSE)
+
 ```
 
 ```{r environment}
@@ -36,7 +35,9 @@ library(viridis)
 library(scales)
 library(knitr)
 library(kableExtra)
+```
 
+```{r additional_setup, include=FALSE}
 theme_set(theme_bw(base_family = 18))
 
 title <- "Mayor @billpeduto tweets"
@@ -69,8 +70,8 @@ df_bill[1:5, 1:5] %>%
   kable("html") %>% 
   kable_styling()
 ```
-
-
+##Exploratory Analysis
+This plot shows that the Mayor tweets about 15 times a day, though there is considerable daily variation.
 ```{r date_smoothed}
 df_bill %>% 
   count(date) %>%
@@ -85,35 +86,49 @@ df_bill %>%
        caption = caption)
 ```
 
-```{r hour}
-df_bill %>% 
-  ggplot(aes(hour)) +
-  geom_density(fill = "grey") +
-  scale_x_continuous(breaks = seq(0, 23, by = 2),
-                     expand = c(0,0)) +
-  scale_y_continuous(expand = c(0,0)) +
-  labs(title = title,
-       x = "Hour",
-       y = "Number of tweets",
-       caption = caption)
-```
-
+The Mayor tweets the most on weekdays; Tuesday has the highest median number of tweets. The weekends see fewer tweets, and Saturday and Sunday are very similar.
 ```{r weekday}
 df_bill %>% 
-  ggplot(aes(wday, group = 1)) +
-  geom_density(stat = "count", fill = "black") +
-  labs(x = "",
-       y = "Number of tweets") +
-  scale_y_continuous(expand = c(0,0)) +
-  scale_x_discrete(expand = c(0,0)) +
+  count(wday, date) %>% 
+  group_by(wday) %>% 
+  mutate(median = median(n)) %>% 
+  ggplot(aes(wday, n, color = wday)) +
+  geom_jitter(alpha = .3, width = .2) +
+  geom_point(aes(wday, median), size = 5) +
+  scale_color_viridis(name = "Weekday", discrete = TRUE) +
   labs(title = title,
-       x = "", 
-       y = "Number of tweets",
+       x = "",
+       y = "Number of tweets in a given day",
        caption = caption)
 ```
 
+The Mayor does most of his tweeting around lunchtime, though he is known to tweet in the late evening as well.
+```{r hour}
+df_bill %>% 
+  count(hour) %>% 
+  ggplot(aes(hour, y = 1, fill = n)) +
+  geom_tile() +
+  coord_equal() +
+  scale_y_continuous(expand = c(0,0)) +
+  scale_x_continuous(expand = c(0,0),
+                     breaks = seq(0, 23, by = 3)) +
+  scale_fill_viridis(name = "Number of tweets",
+                     option = 3) +
+  guides(fill = guide_colorbar(title.position = "top")) +
+  labs(title = title,
+       x = "Hour",
+       y = "",
+       caption = caption) +
+  theme(axis.text.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        legend.position = "bottom",
+        legend.text = element_text(size = 7))
+```
+
+This view combines the weekday and hour variables, and confirms what we observed when looking at the variables independently.
 ```{r heatmap}
 df_bill %>% 
+  mutate(wday = factor(wday, levels = rev(levels(df_bill$wday)))) %>% 
   count(wday, hour) %>% 
   complete(wday, hour = 0:23) %>% 
   replace_na(list(n = 0)) %>% 
@@ -124,20 +139,25 @@ df_bill %>%
                   breaks = seq(0, 24, by = 3)) +
   scale_y_discrete(expand = c(0,0)) +
   scale_fill_viridis(option = 3) +
-  labs(x = "Hour",
-       y = "") +
+  labs(title = title,
+       x = "Hour",
+       y = "",
+       caption = caption) +
   guides(fill = guide_colorbar("Number of tweets"))
 ```
 
+This plot shows that over half of the Mayor's tweets are retweets, regular tweets make up 20-30% of the tweets, quote tweets make up about 10-20%, and replies supply the remainder.
 ```{r tweet_types}
 df_bill %>% 
-  select(date, month_year, month, week, is_retweet, is_quote) %>% 
-  mutate(tweet_type = case_when(is_retweet == FALSE & is_quote == FALSE ~ "Regular tweet",
-                                   is_retweet == TRUE ~ "Retweet",
-                                   is_quote == TRUE ~ "Quote")) -> df_bill_tweet_types
+  select(date, month_year, month, week, is_retweet, is_quote, reply_to_screen_name) %>% 
+  mutate(tweet_type = case_when(is.na(reply_to_screen_name) == FALSE ~ "Reply",
+                                is_retweet == FALSE & is_quote == FALSE ~ "Regular tweet",
+                                is_retweet == TRUE ~ "Retweet",
+                                is_quote == TRUE ~ "Quote")) -> df_bill_tweet_types
 
 df_bill_tweet_types %>% 
-  count(month_year, tweet_type) -> df_bill_tweet_types_month_year
+  count(month_year, tweet_type) %>% 
+  mutate(tweet_type = factor(tweet_type, levels = rev(c("Retweet", "Regular tweet", "Quote", "Reply")))) -> df_bill_tweet_types_month_year
 
 df_bill_tweet_types_month_year %>%  
   ggplot(aes(month_year, n, fill = tweet_type, group = tweet_type)) +
@@ -151,6 +171,7 @@ df_bill_tweet_types_month_year %>%
        caption = caption)
 ```
 
+This heatmap shows that the Mayor replies to tweets most often in the late evening.
 ```{r replies_heatmap}
 df_bill %>% 
   filter(!is.na(reply_to_screen_name), is_quote == FALSE, is_retweet == FALSE) %>% 
@@ -164,18 +185,19 @@ df_bill %>%
                   breaks = seq(0, 24, by = 3)) +
   scale_y_discrete(expand = c(0,0)) +
   scale_fill_viridis(option = 3) +
-  labs(x = "",
-       y = "Hour") +
+  labs(x = "Hour",
+       y = "Weekday") +
   guides(fill = guide_colorbar("Number of tweets"))
 ```
 
-
+##Text Analysis
+The R package Tidytext makes it very easy to parse text data and pull insights from it. It interfaces very easily with ggraph, which creates network graphs.
 ```{r, load_text_analysis_environment}
-#source("https://raw.githubusercontent.com/conorotompkins/pittsburgh_twitter/master/scripts/tidytext_functions.R")
 set.seed(1234)
 df_bill <- read_csv("https://raw.githubusercontent.com/conorotompkins/pittsburgh_twitter/master/data/bill_peduto_tweets.tweets.csv")
 ```
 
+By separating the Mayor's tweets into bigrams (two-word chunks), we can identify which words are used together often. This code cuts the tweets into bigrams and counts their frequency.
 ```{r munge_billpeduto_tweets}
 count_twitter_bigrams <- function(dataset, custom_stopwords) {
   replace_reg <- "https://t.co/[A-Za-z\\d]+|http://[A-Za-z\\d]+|&amp;|&lt;|&gt;|RT|https|'s"
@@ -196,11 +218,13 @@ bill_stop_words <- c("t.co", "https", "amp")
 
 tweets_bill <- count_twitter_bigrams(df_bill, bill_stop_words)
 tweets_bill %>% 
+  rename(count = n) %>% 
   head() %>% 
   kable("html") %>% 
   kable_styling()
 ```
 
+This network graph shows which words the Mayor uses together frequently. "public" + "safety", and "affordable" + "housing" are the main standouts. I think this plot pretty accurately captures the policy issues the Mayor focuses on.
 ```{r, visualize_bigrams, fig.height=12, fig.width=12}
 visualize_bigrams <- function(bigrams, minimum, text_size = 3, title = NULL, subtitle = NULL, caption = NULL) {
   set.seed(2016)
@@ -230,7 +254,8 @@ visualize_bigrams(tweets_bill,
                   caption = caption)
 ```
 
-```{r visualize_word_correlations, fig.height=12, fig.width=12}
+This code determines which words are correlated with each other:
+```{r calculate_word_correlations}
 word_correlations <- function(dataframe, minimum, custom_stopwords){
   replace_reg <- "https://t.co/[A-Za-z\\d]+|http://[A-Za-z\\d]+|&amp;|&lt;|&gt;|RT|https"
   unnest_reg <- "([^A-Za-z_\\d#@']|'(?![A-Za-z_\\d#@]))"
@@ -254,16 +279,19 @@ word_correlations <- function(dataframe, minimum, custom_stopwords){
 
 bill_stopwords <- c("t.co", "https", "amp")
 
-bill_words <- word_correlations(df_bill, 20, bill_stopwords)
+bill_words <- word_correlations(df_bill, minimum = 10, custom_stopwords = bill_stopwords)
+```
 
+This plot shows which words are correlated highly with each other. Some words are "stemmed" (shortened/modified), to capture very similar words, like "business" and "businesses". "amazon" and "hq2" are used together overwhelmingly. The "pwsa" + "water" + "decad" combination indicate the ongoing water quality problems, and plans for reinvestment in the infrastructure.
+```{r, visualize_word_correlations, fig.height=12, fig.width=12}
 visualize_word_correlations <- function(dataframe, title, subtitle, caption){
   dataframe %>% 
-  filter(correlation > .05) %>%
+  filter(correlation > .3) %>%
   graph_from_data_frame() %>%
   ggraph(layout = "fr") +
   geom_edge_link(aes(edge_alpha = correlation, edge_width = correlation), show.legend = FALSE) +
   geom_node_point(color = "lightblue", size = 5) +
-  geom_node_label(aes(label = name), size = 5, repel = FALSE) +
+  geom_node_label(aes(label = name), size = 5, repel = TRUE) +
   scale_edge_alpha_continuous(range = c(.1, .5)) +
   theme_void(base_size = 18) +
   labs(title = title,
