@@ -14,8 +14,6 @@ tags:
 
 
 
-<div id="text-analysis" class="section level2">
-<h2>Text analysis</h2>
 <p>As a follow-up to my post about how <a href="http://ctompkins.netlify.com/2018/03/08/mayor-billpeduto-tweets/">Pittsburgh Mayor Bill Peduto uses Twitter</a>, I thought it would be useful to examine and compare how Pennsylvania’s U.S. senators use Twitter. I will use some of the same methods, in addition to some comparative methods. In this analysis, I exclude retweets and quote tweets.</p>
 <p>This code loads the libraries requires for the analysis, and sets some prefences for plotting.</p>
 <pre class="r"><code>library(tidyverse)
@@ -43,7 +41,6 @@ df_toomey &lt;- get_timelines(&quot;SenToomey&quot;, n = 3200) %&gt;%
 df_casey &lt;- read_csv(&quot;https://raw.githubusercontent.com/conorotompkins/pittsburgh_twitter/master/data/tweets_casey.tweets.csv&quot;)
 
 df_toomey &lt;- read_csv(&quot;https://raw.githubusercontent.com/conorotompkins/pittsburgh_twitter/master/data/tweets_toomey.tweets.csv&quot;)</code></pre>
-</div>
 <div id="bigram-analysis" class="section level2">
 <h2>Bigram analysis</h2>
 <p>Bigrams are two-word chunks pulled from text. For example, “Senator Casey”, “Casey is”, “is from”, and “from Pennsylvania” are all bigrams of the sentence “Senator Casey is from Pennsylania”. This code extracts the bigrams from Senator Casey’s tweets and counts how many times they occur. It also removes some artifacts of URLs and other Twitter metadata that are not relevant.</p>

@@ -18,7 +18,6 @@ knitr::opts_chunk$set(warning = FALSE,
                       cache = TRUE)
 ```
 
-##Text analysis
 As a follow-up to my post about how [Pittsburgh Mayor Bill Peduto uses Twitter](http://ctompkins.netlify.com/2018/03/08/mayor-billpeduto-tweets/), I thought it would be useful to examine and compare how Pennsylvania's U.S. senators use Twitter. I will use some of the same methods, in addition to some comparative methods. In this analysis, I exclude retweets and quote tweets.
 
 This code loads the libraries requires for the analysis, and sets some prefences for plotting.
