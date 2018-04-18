@@ -554,7 +554,7 @@ df %>%
          x = "",
          y = "Number of requests",
          caption = my_caption) +
-    theme_bw()
+    theme_bw(base_family = 18)
 ```
 
 ##Mapping
