@@ -15,9 +15,6 @@ tags:
   - '311'
 ---
 
-To do
-* add a faceted chart
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, cache = FALSE, warning = FALSE)
 ```
@@ -51,7 +48,9 @@ Integrated Development Environment for R
 
 We will enter our code in the Code Editor panel. When you execute code in the code editor, the output is shown in the Console (or the Plots or Viewer) panel.
 
-Image: http://www.sthda.com/english/wiki/running-rstudio-and-setting-up-your-working-directory-easy-r-programming
+![](/post/2018-04-18-r-311-pothole-workshop-code-for-pittsburgh_files/rstudio_panels.png)
+
+[Image from the STHDA](http://www.sthda.com/english/wiki/running-rstudio-and-setting-up-your-working-directory-easy-r-programming)
 
 Install the tidyverse, lubridate, and ggmap packages
 
@@ -510,7 +509,7 @@ df %>%
   top_n(5) %>% #select the top 5 request types
   ungroup() -> df_top_requests
 ```
-```{r area_chart, fig.height=6, fig.width=12, message=FALSE, warning=FALSE, paged.print=FALSE}
+```{r area_chart, message=FALSE, warning=FALSE, paged.print=FALSE}
 df %>% 
   filter(date >= "2016-01-01", #only select the rows where the date is after 2016-01-01 and before 2018-01-1
          date <= "2018-01-01") %>% 
@@ -530,6 +529,34 @@ df %>%
   theme(panel.grid = element_blank()) #remove the gridlines fom the plot
 ```
 
+##Faceting
+Facets allow you to split a chart by a variable
+
+Where do pothole requests come from?
+```{r}
+df %>% 
+  count(request_origin, sort = TRUE)
+```
+
+Make a line chart for the number of requests per day
+
+Use facets to distinguish where the request came from
+```{r}
+df %>% 
+  select(date, request_type, request_origin) %>% 
+  filter(request_type == "Potholes") %>% 
+  count(date, request_type, request_origin) %>% 
+  ggplot(aes(x = date, y = n)) +
+    geom_line() +
+    facet_wrap(~request_origin) + #facet by request_origin
+    labs(title = my_title,
+         subtitle = "By Request Origin",
+         x = "",
+         y = "Number of requests",
+         caption = my_caption) +
+    theme_bw()
+```
+
 ##Mapping
 Load the ggmap package, which works with ggplot2
 ```{r}
@@ -544,7 +571,7 @@ Select the request_type, x, and y columns. x and y are longitude and latitude
          request_type == "Potholes") -> df_map) #remove missing x and y values
 ```
 
-```{r eval=FALSE}
+```{r eval=TRUE}
 city_map <-  get_map("North Oakland, Pittsburgh, PA", 
                      zoom = 12,
                      maptype = "toner", 
@@ -554,13 +581,13 @@ city_map <-  get_map("North Oakland, Pittsburgh, PA",
 ```
 
 Put the data on the map
-```{r eval=FALSE}
+```{r eval=TRUE}
 city_map +
   geom_point(data = df_map, aes(x, y, color = request_type)) #graph the data with dots
 ```
 
 There is too much data on the graph. Make the dots more transparent to show density
-```{r eval=FALSE}
+```{r eval=TRUE}
 city_map +
   geom_point(data = df_map, aes(x, y, color = request_type), alpha = .1) #graph the data with dots
 ```
@@ -568,7 +595,7 @@ city_map +
 Still not great
 
 Density plots are better for showing overplotted data
-```{r eval=FALSE}
+```{r eval=TRUE}
 #Put the data on the map
 city_map +
   stat_density_2d(data = df_map, #Using a 2d density contour
