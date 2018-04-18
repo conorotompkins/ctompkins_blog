@@ -49,8 +49,6 @@ Integrated Development Environment for R
 3. Workspace (Environment, History, Connections, Git)
 4. Plots and Files (Packages, Help, Viewer)
 
-![](rstudio_panels.png)
-
 We will enter our code in the Code Editor panel. When you execute code in the code editor, the output is shown in the Console (or the Plots or Viewer) panel.
 
 Image: http://www.sthda.com/english/wiki/running-rstudio-and-setting-up-your-working-directory-easy-r-programming
