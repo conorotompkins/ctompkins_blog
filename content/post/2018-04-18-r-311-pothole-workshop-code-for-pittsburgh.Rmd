@@ -55,7 +55,7 @@ We will enter our code in the Code Editor panel. When you execute code in the co
 Install the tidyverse, lubridate, and ggmap packages
 
 ```{r eval=FALSE}
-install.packages("tidyverse", "lubridate", "ggmap")
+install.packages(c("tidyverse", "lubridate", "ggmap"))
 #you will see activity in the console as the packages are installed
 ```
 
