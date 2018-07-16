@@ -1,0 +1,190 @@
+---
+title: Exploring 311 data with PCA
+author: Conor Tompkins
+date: '2018-07-15'
+slug: exploring-311-data-with-pca
+runtime: shiny
+categories:
+  - Pittsburgh
+  - R
+tags:
+  - '311'
+  - R Markdown
+  - PCA
+---
+
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+library(lubridate)
+library(broom)
+library(ggfortify)
+library(ggrepel)
+library(janitor)
+
+options(scipen = 999)
+set.seed(1234)
+
+theme_set(theme_bw())
+```
+
+```{r message=FALSE, warning=FALSE}
+df <- read_csv("https://raw.githubusercontent.com/conorotompkins/pittsburgh_311/master/data/pittsburgh_311.csv", progress = FALSE) %>% 
+  clean_names()
+
+df %>%
+  mutate(date = ymd(str_sub(created_on, 1, 10)),
+         time = hms(str_sub(created_on, 11, 18)),
+         month = month(date, label = TRUE), 
+         year = year(date),
+         yday = yday(date)) -> df
+```
+
+```{r}
+df %>% 
+  count(request_type, sort = TRUE) %>% 
+  filter(n > 400) -> df_top_requests
+
+df %>%
+  select(-time) %>% 
+  semi_join(df_top_requests) %>% 
+  group_by(request_type, month) %>% 
+  summarize(n = n()) %>% 
+  complete(request_type, month) %>% 
+  replace_na(replace = list(n = 0)) -> df_months
+
+df_months %>% 
+  group_by(request_type) %>% 
+  mutate(request_type_total = sum(n)) -> df_months
+
+df_months %>% 
+  mutate(month_percentage = n / request_type_total) -> df_months
+
+df_months %>% 
+  filter(is.na(month_percentage))
+
+df_months %>% 
+  filter(is.nan(month_percentage))
+
+df_months %>% 
+  select(request_type, month, month_percentage) %>% 
+  spread(month, month_percentage) %>% 
+  ungroup() -> df_months
+```
+
+```{r}
+df_months %>% 
+  ggplot(aes(Jan, Jul, label = request_type)) +
+  geom_point()
+```
+
+```{r}
+df_months %>% 
+  ggplot(aes(Apr, Oct, label = request_type)) +
+  geom_point()
+```
+
+
+```{r}
+df_months %>% 
+  ungroup() %>% 
+  remove_rownames() %>% 
+  column_to_rownames(var = "request_type") -> df_months_pca1
+```
+```{r}
+df_months_pca1 %>% 
+  prcomp(scale = TRUE) -> pc
+```
+
+
+```{r}
+# information about rotation
+pc %>% 
+  tidy() %>% 
+  head()
+```
+```{r}
+# information about samples (request types)
+pc %>% 
+  tidy("samples") %>% 
+  head()
+#head(tidy(pc, "samples"))
+```
+```{r}
+# information about PCs
+pc %>% 
+  tidy("pcs")
+```
+```{r}
+#tidy(pc, "pcs") 
+pc %>% 
+  augment(data = df_months) -> au
+au %>% 
+  head()
+```
+```{r}
+df_months_pca <- df_months %>% 
+  nest() %>% 
+  mutate(pca = map(data, ~ prcomp(.x %>% select(-request_type), 
+                                  center = TRUE, scale = TRUE)),
+         pca_aug = map2(pca, data, ~augment(.x, data = .y)))
+```
+
+```{r}
+var_exp <- df_months_pca %>% 
+  unnest(pca_aug) %>% 
+  summarize_at(.vars = vars(contains("PC")), .funs = funs(var)) %>% 
+  gather(key = pc, value = variance) %>% 
+  mutate(var_exp = variance/sum(variance),
+         cum_var_exp = cumsum(var_exp),
+         pc = str_replace(pc, ".fitted", ""))
+
+var_exp
+
+var_exp %>% 
+  rename(
+    `Variance Explained` = var_exp,
+    `Cumulative Variance Explained` = cum_var_exp
+  ) %>% 
+  gather(key = key, value = value, `Variance Explained`:`Cumulative Variance Explained`) %>% 
+  mutate(pc = factor(pc, levels = unique(.$pc))) %>% 
+  ggplot(aes(pc, value, group = key)) + 
+  geom_point() + 
+  geom_line() + 
+  facet_wrap(~key, scales = "free_y") +
+  theme_bw() +
+  lims(y = c(0, 1)) +
+  labs(y = "Variance",
+       title = "Variance explained by each principal component")
+```
+
+```{r}
+au %>% 
+  mutate(outlier = case_when(abs(.fittedPC1) > 2 & abs(.fittedPC2) > 1.5 ~ TRUE)) -> au
+
+au %>% 
+ggplot(aes(.fittedPC1, .fittedPC2)) +
+  geom_point() +
+  geom_label_repel(data = au %>% filter(outlier),
+             aes(label = request_type)) +
+  theme_bw()
+```
+
+
+
+```{r}
+df_months_pca %>%
+  mutate(
+    pca_graph = map2(
+      .x = pca,
+      .y = data,
+      ~ autoplot(.x, loadings = TRUE, loadings.label = TRUE,
+                 loadings.label.repel = TRUE,
+                 data = .y) +
+        theme_bw() +
+        labs(x = "Principal Component 1",
+             y = "Principal Component 2",
+             title = "First two principal components of PCA on 311 dataset")
+    )
+  ) %>%
+  pull(pca_graph)
+```
