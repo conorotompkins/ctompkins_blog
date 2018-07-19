@@ -10,6 +10,7 @@ tags:
   - '311'
   - R Markdown
   - PCA
+draft: false
 ---
 #Principal Component Analysis in R
 
