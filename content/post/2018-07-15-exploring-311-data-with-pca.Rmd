@@ -14,7 +14,7 @@ draft: false
 ---
 #Principal Component Analysis in R
 
-Principle Component Analysis is an unsupervised method that reduces the number of dimensions in a dataset and highlights where the data varies. We will use PCA to analyze the 311 dataset from the [WPRDC](https://data.wprdc.org/dataset/311-data).
+Principal Component Analysis is an unsupervised method that reduces the number of dimensions in a dataset and highlights where the data varies. We will use PCA to analyze the 311 dataset from the [WPRDC](https://data.wprdc.org/dataset/311-data).
 
 ##Setup
 ```{r setup, include = FALSE}
@@ -60,7 +60,7 @@ Create a dataframe of the top request types
   filter(n > 400) -> df_top_requests)
 ```
 
-Count the number of requests per month by request type, filter for the top request types, fill in gaps in the data
+Count the number of requests per month by request type, filter for the top request types, and fill in gaps in the data
 ```{r}
 (df %>%
   semi_join(df_top_requests) %>% 
@@ -106,7 +106,7 @@ Check that they all add up to 1 across the rows
 ###Perform basic comparisons
 ```{r}
 df_months %>% 
-  ggplot(aes(Jan, Jul, label = request_type)) +
+  ggplot(aes(Jan, Jul)) +
   geom_point()
 ```
 
@@ -114,7 +114,7 @@ Remember that each dot represents a request type, and the month shows what % of 
 
 ```{r}
 df_months %>% 
-  ggplot(aes(Apr, Oct, label = request_type)) +
+  ggplot(aes(Apr, Oct)) +
   geom_point()
 ```
 
@@ -169,7 +169,7 @@ pc %>%
     geom_point() +
     facet_wrap(~measure) +
     labs(title = "Variance explained by each principal component",
-         x = "Principle Component",
+         x = "Principal Component",
          y = NULL) +
     scale_x_continuous(breaks = 1:12)
 ```
@@ -209,7 +209,9 @@ This shows that summer and winter explain a significant part of the variance
 Plot the data to show the outliers
 ```{r}
 au %>% 
-  mutate(outlier = case_when(abs(.fittedPC1) > 2 & abs(.fittedPC2) > 1.5 ~ TRUE)) -> au
+  mutate(outlier = case_when(abs(.fittedPC1) > 2 & abs(.fittedPC2) > 1.5 ~ TRUE),
+         pothole = case_when(request_type == "Potholes" ~ "Potholes",
+                             request_type != "Potholes" ~ "Other")) -> au
 
 au %>% 
 ggplot(aes(.fittedPC1, .fittedPC2)) +
@@ -222,10 +224,11 @@ ggplot(aes(.fittedPC1, .fittedPC2)) +
 ```{r}
 au %>% 
 ggplot(aes(.fittedPC1, .fittedPC2)) +
-  geom_point() +
+  geom_point(aes(color = pothole)) +
   geom_label_repel(data = au %>% filter(request_type == "Potholes"),
              aes(label = request_type)) +
-  theme_bw()
+  theme_bw() +
+  scale_color_manual(NULL, values = c("black", "red"))
 ```
 
 
