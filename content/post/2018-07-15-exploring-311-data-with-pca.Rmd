@@ -14,7 +14,7 @@ tags:
 ---
 #Principal Component Analysis in R
 
-Principle Component Analysis is an unsupervised method that reduces the number of dimensions in a dataset and highlights where the data varies.
+Principle Component Analysis is an unsupervised method that reduces the number of dimensions in a dataset and highlights where the data varies. We will use PCA to analyze the 311 dataset from the [WPRDC](https://data.wprdc.org/dataset/311-data).
 
 ##Setup
 ```{r setup, include = FALSE}
