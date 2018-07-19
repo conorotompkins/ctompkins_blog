@@ -3,7 +3,6 @@ title: Exploring 311 data with PCA
 author: Conor Tompkins
 date: '2018-07-19'
 slug: exploring-311-data-with-pca
-runtime: shiny
 categories:
   - Pittsburgh
   - R

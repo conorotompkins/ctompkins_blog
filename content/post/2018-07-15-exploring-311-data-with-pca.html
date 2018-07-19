@@ -4,7 +4,6 @@ title: Exploring 311 data with PCA
 author: Conor Tompkins
 date: '2018-07-19'
 slug: exploring-311-data-with-pca
-runtime: shiny
 categories:
   - Pittsburgh
   - R
@@ -16,16 +15,16 @@ tags:
 
 
 
-<div id="section-principal-component-analysis-in-r" class="section level1">
+<div id="principal-component-analysis-in-r" class="section level1">
 <h1>Principal Component Analysis in R</h1>
 <p>Principle Component Analysis is an unsupervised method that reduces the number of dimensions in a dataset and highlights where the data varies. We will use PCA to analyze the 311 dataset from the <a href="https://data.wprdc.org/dataset/311-data">WPRDC</a>.</p>
-<div id="section-setup" class="section level2">
+<div id="setup" class="section level2">
 <h2>Setup</h2>
-<div id="section-install-packages" class="section level3">
+<div id="install-packages" class="section level3">
 <h3>Install packages</h3>
 <pre class="r"><code>install.packages(c(&quot;tidyverse&quot;, &quot;lubridate&quot;, &quot;broom&quot;, &quot;ggfortify&quot;, &quot;ggrepel&quot;, &quot;janitor&quot;))</code></pre>
 </div>
-<div id="section-set-up-your-environment" class="section level3">
+<div id="set-up-your-environment" class="section level3">
 <h3>Set up your environment</h3>
 <pre class="r"><code>library(tidyverse)
 library(lubridate)
@@ -40,14 +39,14 @@ set.seed(1234)
 theme_set(theme_bw())</code></pre>
 </div>
 </div>
-<div id="section-load-the-data" class="section level2">
+<div id="load-the-data" class="section level2">
 <h2>Load the data</h2>
 <pre class="r"><code>read_csv(&quot;https://raw.githubusercontent.com/conorotompkins/pittsburgh_311/master/data/pittsburgh_311.csv&quot;, progress = FALSE) %&gt;% 
   clean_names() %&gt;% 
   mutate(date = ymd(str_sub(created_on, 1, 10)),
          month = month(date, label = TRUE)) -&gt; df</code></pre>
 </div>
-<div id="section-prep-the-data" class="section level2">
+<div id="prep-the-data" class="section level2">
 <h2>Prep the data</h2>
 <p>Create a dataframe of the top request types</p>
 <pre class="r"><code>(df %&gt;% 
@@ -162,7 +161,7 @@ theme_set(theme_bw())</code></pre>
 ## 10       1 0.0265  0.0305  0.0713 0.0509 0.128  0.120  0.136  0.128 
 ## # ... with 74 more rows, and 4 more variables: Sep &lt;dbl&gt;, Oct &lt;dbl&gt;,
 ## #   Nov &lt;dbl&gt;, Dec &lt;dbl&gt;</code></pre>
-<div id="section-perform-basic-comparisons" class="section level3">
+<div id="perform-basic-comparisons" class="section level3">
 <h3>Perform basic comparisons</h3>
 <pre class="r"><code>df_months %&gt;% 
   ggplot(aes(Jan, Jul, label = request_type)) +
@@ -177,7 +176,7 @@ theme_set(theme_bw())</code></pre>
 <p>In this case, where our data is measured by months in a year, each principal component could loosely be compared to a season.</p>
 </div>
 </div>
-<div id="section-prep-the-data-for-pca" class="section level2">
+<div id="prep-the-data-for-pca" class="section level2">
 <h2>Prep the data for PCA</h2>
 <p>The PCA function requires an all-numeric dataframe, so drop the request types into the dataframe metadata</p>
 <pre class="r"><code>(df_months %&gt;% 
@@ -360,7 +359,7 @@ ggplot(aes(.fittedPC1, .fittedPC2)) +
 <p><img src="/post/2018-07-15-exploring-311-data-with-pca_files/figure-html/unnamed-chunk-21-1.png" width="672" /></p>
 </div>
 </div>
-<div id="section-sources" class="section level1">
+<div id="sources" class="section level1">
 <h1>Sources</h1>
 <ul>
 <li><a href="https://tbradley1013.github.io/2018/02/01/pca-in-a-tidy-verse-framework/" class="uri">https://tbradley1013.github.io/2018/02/01/pca-in-a-tidy-verse-framework/</a></li>
