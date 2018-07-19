@@ -17,7 +17,7 @@ draft: false
 
 <div id="principal-component-analysis-in-r" class="section level1">
 <h1>Principal Component Analysis in R</h1>
-<p>Principle Component Analysis is an unsupervised method that reduces the number of dimensions in a dataset and highlights where the data varies. We will use PCA to analyze the 311 dataset from the <a href="https://data.wprdc.org/dataset/311-data">WPRDC</a>.</p>
+<p>Principal Component Analysis is an unsupervised method that reduces the number of dimensions in a dataset and highlights where the data varies. We will use PCA to analyze the 311 dataset from the <a href="https://data.wprdc.org/dataset/311-data">WPRDC</a>.</p>
 <div id="setup" class="section level2">
 <h2>Setup</h2>
 <div id="install-packages" class="section level3">
@@ -66,7 +66,7 @@ theme_set(theme_bw())</code></pre>
 ##  9 Building Without a Permit             4404
 ## 10 Litter                                4198
 ## # ... with 74 more rows</code></pre>
-<p>Count the number of requests per month by request type, filter for the top request types, fill in gaps in the data</p>
+<p>Count the number of requests per month by request type, filter for the top request types, and fill in gaps in the data</p>
 <pre class="r"><code>(df %&gt;%
   semi_join(df_top_requests) %&gt;% 
   group_by(request_type, month) %&gt;% 
@@ -164,12 +164,12 @@ theme_set(theme_bw())</code></pre>
 <div id="perform-basic-comparisons" class="section level3">
 <h3>Perform basic comparisons</h3>
 <pre class="r"><code>df_months %&gt;% 
-  ggplot(aes(Jan, Jul, label = request_type)) +
+  ggplot(aes(Jan, Jul)) +
   geom_point()</code></pre>
 <p><img src="/post/2018-07-15-exploring-311-data-with-pca_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
 <p>Remember that each dot represents a request type, and the month shows what % of that request type occurred that month</p>
 <pre class="r"><code>df_months %&gt;% 
-  ggplot(aes(Apr, Oct, label = request_type)) +
+  ggplot(aes(Apr, Oct)) +
   geom_point()</code></pre>
 <p><img src="/post/2018-07-15-exploring-311-data-with-pca_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
 <p>It is not feasible to plot all the months against each other. PCA can help by condensing the columns and increasing the variance. PCA creates eigenvectors that represents the data in a concentrated way. Eigenvectors and eigenvalues do not represent observed data. They are calculated representations of the data. We will refer to eigenvectors as “principal components”.</p>
@@ -309,7 +309,7 @@ au %&gt;%
     geom_point() +
     facet_wrap(~measure) +
     labs(title = &quot;Variance explained by each principal component&quot;,
-         x = &quot;Principle Component&quot;,
+         x = &quot;Principal Component&quot;,
          y = NULL) +
     scale_x_continuous(breaks = 1:12)</code></pre>
 <p><img src="/post/2018-07-15-exploring-311-data-with-pca_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
@@ -341,7 +341,9 @@ au %&gt;%
 <p>This shows that summer and winter explain a significant part of the variance</p>
 <p>Plot the data to show the outliers</p>
 <pre class="r"><code>au %&gt;% 
-  mutate(outlier = case_when(abs(.fittedPC1) &gt; 2 &amp; abs(.fittedPC2) &gt; 1.5 ~ TRUE)) -&gt; au
+  mutate(outlier = case_when(abs(.fittedPC1) &gt; 2 &amp; abs(.fittedPC2) &gt; 1.5 ~ TRUE),
+         pothole = case_when(request_type == &quot;Potholes&quot; ~ &quot;Potholes&quot;,
+                             request_type != &quot;Potholes&quot; ~ &quot;Other&quot;)) -&gt; au
 
 au %&gt;% 
 ggplot(aes(.fittedPC1, .fittedPC2)) +
@@ -352,10 +354,11 @@ ggplot(aes(.fittedPC1, .fittedPC2)) +
 <p><img src="/post/2018-07-15-exploring-311-data-with-pca_files/figure-html/unnamed-chunk-20-1.png" width="672" /></p>
 <pre class="r"><code>au %&gt;% 
 ggplot(aes(.fittedPC1, .fittedPC2)) +
-  geom_point() +
+  geom_point(aes(color = pothole)) +
   geom_label_repel(data = au %&gt;% filter(request_type == &quot;Potholes&quot;),
              aes(label = request_type)) +
-  theme_bw()</code></pre>
+  theme_bw() +
+  scale_color_manual(NULL, values = c(&quot;black&quot;, &quot;red&quot;))</code></pre>
 <p><img src="/post/2018-07-15-exploring-311-data-with-pca_files/figure-html/unnamed-chunk-21-1.png" width="672" /></p>
 </div>
 </div>
