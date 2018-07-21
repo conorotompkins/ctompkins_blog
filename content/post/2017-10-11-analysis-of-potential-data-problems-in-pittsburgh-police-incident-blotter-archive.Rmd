@@ -37,7 +37,7 @@ theme_set(theme_bw())
 
 Refer to the [Exploratory Analysis post](http://ctompkins.netlify.com/2017/10/07/pittsburgh-crime-data/) for an intro on working with this data
 
-```{r read data into r, echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE}
+```{r read data into r, echo=FALSE, message=FALSE, warning=FALSE}
 df <- read_csv("https://raw.githubusercontent.com/conorotompkins/pgh-crime/master/data/archive-police-blotter.csv")
 ```
 
@@ -88,7 +88,7 @@ df <- df %>%
 
 Does the Zone the incident is assigned to match the geolocations the incident is reported at?
 
-```{r create city map 11, message=FALSE, warning=FALSE, cache=TRUE}
+```{r create city map 11, message=FALSE, warning=FALSE}
 city_map_11 <-  get_map(location = "Oakland, Pittsburgh, PA",
                zoom = 11,
                maptype = "toner", 
@@ -124,7 +124,7 @@ paste0(round(22716 / nrow(df_map_zones), 2) * 100, "%")
 ```
 
 Faceting the data by Zone to separate it, the data looks less accurate
-```{r create city map 12, message=FALSE, warning=FALSE, cache=TRUE}
+```{r create city map 12, message=FALSE, warning=FALSE}
 city_map_12 <-  get_map(location = "Oakland, Pittsburgh, PA",
                zoom = 12,
                maptype = "toner", 
@@ -151,7 +151,7 @@ city_map_12 +
 
 The reporting problems appear most prominently in 2005 and 2006
 
-```{r create zone year facet map, message=FALSE, warning=FALSE, cache=TRUE}
+```{r create zone year facet map, message=FALSE, warning=FALSE}
 city_map_facets <-  ggmap(get_map("North Oakland, Pittsburgh, PA", 
                      zoom = 12,
                      maptype = "toner-lite", 
@@ -422,7 +422,7 @@ Brookline has the most incidents reported in the incorrect zone
 Zone 3 is a major driver of incorrect Zone assignments
 
 Again, the reporting problems appear most prominently in 2005 and 2006
-```{r create nbh year facet map, message=FALSE, warning=FALSE, cache=TRUE}
+```{r create nbh year facet map, message=FALSE, warning=FALSE}
 city_map_facets <-  ggmap(get_map("North Oakland, Pittsburgh, PA", 
                                   zoom = 12,
                                   maptype = "toner-lite", 
