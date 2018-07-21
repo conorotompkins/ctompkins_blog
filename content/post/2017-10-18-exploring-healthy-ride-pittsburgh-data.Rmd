@@ -91,7 +91,6 @@ data_long <- data_long %>%
          date, 
          year,
          month,
-         time, 
          hour,
          wday,
          yday,
@@ -101,7 +100,8 @@ data_long <- data_long %>%
          station_id, 
          station_name_type,
          station_name,
-         everything())
+         everything(),
+         -time)
 ```
 
 Let's look at how the data look:

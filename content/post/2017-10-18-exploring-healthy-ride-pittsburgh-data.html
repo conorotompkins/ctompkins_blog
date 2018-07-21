@@ -1,4 +1,5 @@
 ---
+draft: yes
 title: Exploring Healthy Ride Pittsburgh Data With R
 author: Conor Tompkins
 date: '2017-10-18'
@@ -76,7 +77,6 @@ colnames(data) &lt;- gsub(&quot; &quot;, &quot;_&quot;, colnames(data))</code></
          date, 
          year,
          month,
-         time, 
          hour,
          wday,
          yday,
@@ -86,33 +86,28 @@ colnames(data) &lt;- gsub(&quot; &quot;, &quot;_&quot;, colnames(data))</code></
          station_id, 
          station_name_type,
          station_name,
-         everything())</code></pre>
+         everything(),
+         -time)</code></pre>
 <p>Let’s look at how the data look:</p>
 <pre class="r"><code>data_long</code></pre>
-<pre><code>## Warning in compute_exp(abs_x): NAs introduced by coercion to integer range</code></pre>
-<pre><code>## Warning in compute_exp(x): NAs introduced by coercion to integer range</code></pre>
-<pre><code>## Note: method with signature &#39;Period#ANY&#39; chosen for function &#39;-&#39;,
-##  target signature &#39;Period#Period&#39;.
-##  &quot;ANY#Period&quot; would also be valid</code></pre>
-<pre><code>## Warning in compute_exp(abs_x): NAs introduced by coercion to integer range</code></pre>
-<pre><code>## # A tibble: 1,364,248 x 22
-##    date_time_type  is_weekday date        year month      time  hour wday 
-##    &lt;chr&gt;           &lt;chr&gt;      &lt;date&gt;     &lt;dbl&gt; &lt;ord&gt; &lt;S4: Per&gt; &lt;dbl&gt; &lt;ord&gt;
-##  1 start_date_time weekend    2015-05-31  2015 May           0  6.00 Sun  
-##  2 start_date_time weekend    2015-05-31  2015 May           0  6.00 Sun  
-##  3 start_date_time weekend    2015-05-31  2015 May           0  6.00 Sun  
-##  4 start_date_time weekend    2015-05-31  2015 May           0  7.00 Sun  
-##  5 start_date_time weekend    2015-05-31  2015 May           0  7.00 Sun  
-##  6 start_date_time weekend    2015-05-31  2015 May           0  7.00 Sun  
-##  7 start_date_time weekend    2015-05-31  2015 May           0  7.00 Sun  
-##  8 start_date_time weekend    2015-05-31  2015 May           0  7.00 Sun  
-##  9 start_date_time weekend    2015-05-31  2015 May           0  7.00 Sun  
-## 10 start_date_time weekend    2015-05-31  2015 May           0  7.00 Sun  
-## # ... with 1,364,238 more rows, and 14 more variables: yday &lt;dbl&gt;,
-## #   mday &lt;int&gt;, date_time_2 &lt;chr&gt;, station_id_type &lt;chr&gt;,
-## #   station_id &lt;int&gt;, station_name_type &lt;chr&gt;, station_name &lt;chr&gt;,
-## #   trip_id &lt;int&gt;, bikeid &lt;int&gt;, tripduration &lt;int&gt;, usertype &lt;chr&gt;,
-## #   id &lt;int&gt;, week &lt;dbl&gt;, trip_duration &lt;dbl&gt;</code></pre>
+<pre><code>## # A tibble: 1,364,248 x 21
+##    date_time_type  is_weekday date        year month  hour wday   yday
+##    &lt;chr&gt;           &lt;chr&gt;      &lt;date&gt;     &lt;dbl&gt; &lt;ord&gt; &lt;dbl&gt; &lt;ord&gt; &lt;dbl&gt;
+##  1 start_date_time weekend    2015-05-31  2015 May       6 Sun     151
+##  2 start_date_time weekend    2015-05-31  2015 May       6 Sun     151
+##  3 start_date_time weekend    2015-05-31  2015 May       6 Sun     151
+##  4 start_date_time weekend    2015-05-31  2015 May       7 Sun     151
+##  5 start_date_time weekend    2015-05-31  2015 May       7 Sun     151
+##  6 start_date_time weekend    2015-05-31  2015 May       7 Sun     151
+##  7 start_date_time weekend    2015-05-31  2015 May       7 Sun     151
+##  8 start_date_time weekend    2015-05-31  2015 May       7 Sun     151
+##  9 start_date_time weekend    2015-05-31  2015 May       7 Sun     151
+## 10 start_date_time weekend    2015-05-31  2015 May       7 Sun     151
+## # ... with 1,364,238 more rows, and 13 more variables: mday &lt;int&gt;,
+## #   date_time_2 &lt;chr&gt;, station_id_type &lt;chr&gt;, station_id &lt;int&gt;,
+## #   station_name_type &lt;chr&gt;, station_name &lt;chr&gt;, trip_id &lt;int&gt;,
+## #   bikeid &lt;int&gt;, tripduration &lt;int&gt;, usertype &lt;chr&gt;, id &lt;int&gt;,
+## #   week &lt;dbl&gt;, trip_duration &lt;dbl&gt;</code></pre>
 <p>How has the use of the service trended in the long term?</p>
 <pre class="r"><code>data_long %&gt;% 
   filter(date_time_type == &quot;start_date_time&quot;) %&gt;% 
