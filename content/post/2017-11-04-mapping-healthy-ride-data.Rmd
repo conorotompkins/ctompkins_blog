@@ -65,7 +65,6 @@ data_long <- data %>%
          date, 
          year,
          month,
-         time, 
          hour,
          wday,
          yday,
@@ -75,7 +74,8 @@ data_long <- data %>%
          station_id, 
          station_name_type,
          station_name,
-         everything())
+         everything(),
+         -time)
 
 data_long[1:10, 1:5] %>% 
   kable("html") %>% 
