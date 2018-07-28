@@ -279,7 +279,8 @@ df %>%
          time = hms(str_sub(created_on, 11, 18)),
          month = month(date, label = TRUE), 
          year = year(date),
-         yday = yday(date)) -> df
+         yday = yday(date),
+         -created_on) -> df
 ```
 
 Explore the data
