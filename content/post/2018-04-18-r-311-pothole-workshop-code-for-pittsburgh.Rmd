@@ -264,7 +264,7 @@ library(lubridate)
 ```
 
 read_csv() reads CSV files from your working directory
-```{r eval=FALSE}
+```{r eval=FALSE, error=TRUE}
 df <- read_csv("your_file_name_here.csv")
 ```
 ```{r echo=FALSE}
@@ -279,8 +279,8 @@ df %>%
          time = hms(str_sub(created_on, 11, 18)),
          month = month(date, label = TRUE), 
          year = year(date),
-         yday = yday(date),
-         -created_on) -> df
+         yday = yday(date)) %>% 
+  select(-c(created_on, time)) -> df
 ```
 
 Explore the data
