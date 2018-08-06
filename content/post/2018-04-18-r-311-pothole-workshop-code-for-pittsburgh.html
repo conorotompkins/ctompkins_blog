@@ -1,4 +1,5 @@
 ---
+draft: yes
 title: R 311 Pothole Workshop (Code for Pittsburgh)
 author: Conor Tompkins
 date: '2018-04-18'
@@ -227,12 +228,12 @@ z</code></pre>
 <li>The pipe %&gt;%</li>
 </ul>
 <pre class="r"><code>library(tidyverse)</code></pre>
-<pre><code>## -- Attaching packages -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- tidyverse 1.2.1 --</code></pre>
-<pre><code>## v ggplot2 2.2.1.9000     v purrr   0.2.4     
-## v tibble  1.4.2          v dplyr   0.7.4     
-## v tidyr   0.8.0          v stringr 1.3.0     
-## v readr   1.1.1          v forcats 0.3.0</code></pre>
-<pre><code>## -- Conflicts ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- tidyverse_conflicts() --
+<pre><code>## -- Attaching packages ----------------------------------------------------------------------------- tidyverse 1.2.1 --</code></pre>
+<pre><code>## v ggplot2 3.0.0     v purrr   0.2.5
+## v tibble  1.4.2     v dplyr   0.7.6
+## v tidyr   0.8.1     v stringr 1.3.1
+## v readr   1.1.1     v forcats 0.3.0</code></pre>
+<pre><code>## -- Conflicts -------------------------------------------------------------------------------- tidyverse_conflicts() --
 ## x dplyr::filter() masks stats::filter()
 ## x dplyr::lag()    masks stats::lag()</code></pre>
 <pre class="r"><code>library(lubridate)</code></pre>
@@ -272,34 +273,33 @@ df %&gt;%
          time = hms(str_sub(created_on, 11, 18)),
          month = month(date, label = TRUE), 
          year = year(date),
-         yday = yday(date)) -&gt; df</code></pre>
+         yday = yday(date)) %&gt;% 
+  select(-c(created_on, time)) -&gt; df</code></pre>
 <p>Explore the data</p>
 <pre class="r"><code>df #type the name of the object to preview it</code></pre>
-<pre><code>## # A tibble: 225,189 x 23
-##     `_id` request_id created_on          request_type       request_origin
-##     &lt;int&gt;      &lt;int&gt; &lt;dttm&gt;              &lt;chr&gt;              &lt;chr&gt;         
-##  1 154245      54111 2016-03-10 13:52:00 Rodent control     Call Center   
-##  2 154246      53833 2016-03-09 14:22:00 Rodent control     Call Center   
-##  3 154247      52574 2016-03-03 07:13:00 Potholes           Call Center   
-##  4 154248      54293 2016-03-11 10:12:00 Building Without ~ Control Panel 
-##  5 154249      53560 2016-03-08 14:57:00 Potholes           Call Center   
-##  6 154250      49519 2016-02-22 09:10:00 Potholes           Call Center   
-##  7 154251      49484 2016-02-22 08:03:00 Potholes           Call Center   
-##  8 154252      53787 2016-03-09 12:21:00 Rodent control     Call Center   
-##  9 154253      52887 2016-03-04 12:49:00 Potholes           Call Center   
-## 10 154254      53599 2016-03-08 16:03:00 Rodent control     Call Center   
-## # ... with 225,179 more rows, and 18 more variables: status &lt;int&gt;,
-## #   department &lt;chr&gt;, neighborhood &lt;chr&gt;, council_district &lt;int&gt;,
-## #   ward &lt;int&gt;, tract &lt;dbl&gt;, public_works_division &lt;int&gt;,
-## #   pli_division &lt;int&gt;, police_zone &lt;int&gt;, fire_zone &lt;chr&gt;, x &lt;dbl&gt;,
-## #   y &lt;dbl&gt;, geo_accuracy &lt;chr&gt;, date &lt;date&gt;, time &lt;S4: Period&gt;,
+<pre><code>## # A tibble: 225,189 x 21
+##     `_id` request_id request_type    request_origin status department     
+##     &lt;int&gt;      &lt;int&gt; &lt;chr&gt;           &lt;chr&gt;           &lt;int&gt; &lt;chr&gt;          
+##  1 154245      54111 Rodent control  Call Center         1 Animal Care &amp; ~
+##  2 154246      53833 Rodent control  Call Center         1 Animal Care &amp; ~
+##  3 154247      52574 Potholes        Call Center         1 DPW - Street M~
+##  4 154248      54293 Building Witho~ Control Panel       1 Permits, Licen~
+##  5 154249      53560 Potholes        Call Center         1 DPW - Street M~
+##  6 154250      49519 Potholes        Call Center         1 DPW - Street M~
+##  7 154251      49484 Potholes        Call Center         1 DPW - Street M~
+##  8 154252      53787 Rodent control  Call Center         1 Animal Care &amp; ~
+##  9 154253      52887 Potholes        Call Center         1 DPW - Street M~
+## 10 154254      53599 Rodent control  Call Center         1 Animal Care &amp; ~
+## # ... with 225,179 more rows, and 15 more variables: neighborhood &lt;chr&gt;,
+## #   council_district &lt;int&gt;, ward &lt;int&gt;, tract &lt;dbl&gt;,
+## #   public_works_division &lt;int&gt;, pli_division &lt;int&gt;, police_zone &lt;int&gt;,
+## #   fire_zone &lt;chr&gt;, x &lt;dbl&gt;, y &lt;dbl&gt;, geo_accuracy &lt;chr&gt;, date &lt;date&gt;,
 ## #   month &lt;ord&gt;, year &lt;dbl&gt;, yday &lt;dbl&gt;</code></pre>
 <pre class="r"><code>glimpse(df) #get a summary of the dataframe</code></pre>
 <pre><code>## Observations: 225,189
-## Variables: 23
+## Variables: 21
 ## $ `_id`                 &lt;int&gt; 154245, 154246, 154247, 154248, 154249, ...
 ## $ request_id            &lt;int&gt; 54111, 53833, 52574, 54293, 53560, 49519...
-## $ created_on            &lt;dttm&gt; 2016-03-10 13:52:00, 2016-03-09 14:22:0...
 ## $ request_type          &lt;chr&gt; &quot;Rodent control&quot;, &quot;Rodent control&quot;, &quot;Pot...
 ## $ request_origin        &lt;chr&gt; &quot;Call Center&quot;, &quot;Call Center&quot;, &quot;Call Cent...
 ## $ status                &lt;int&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1...
@@ -316,7 +316,6 @@ df %&gt;%
 ## $ y                     &lt;dbl&gt; 40.44579, 40.43986, 40.46527, NA, 40.459...
 ## $ geo_accuracy          &lt;chr&gt; &quot;APPROXIMATE&quot;, &quot;APPROXIMATE&quot;, &quot;EXACT&quot;, &quot;...
 ## $ date                  &lt;date&gt; 2016-03-10, 2016-03-09, 2016-03-03, 201...
-## $ time                  &lt;S4: Period&gt; 13H 52M 0S, 14H 22M 0S, 7H 13M 0S...
 ## $ month                 &lt;ord&gt; Mar, Mar, Mar, Mar, Mar, Feb, Feb, Mar, ...
 ## $ year                  &lt;dbl&gt; 2016, 2016, 2016, 2016, 2016, 2016, 2016...
 ## $ yday                  &lt;dbl&gt; 70, 69, 63, 71, 68, 53, 53, 69, 64, 68, ...</code></pre>
@@ -462,10 +461,10 @@ df %&gt;%
 <pre><code>## # A tibble: 4 x 2
 ##    year     n
 ##   &lt;dbl&gt; &lt;int&gt;
-## 1 2015.   231
-## 2 2016.   366
-## 3 2017.   365
-## 4 2018.   100</code></pre>
+## 1  2015   231
+## 2  2016   366
+## 3  2017   365
+## 4  2018   100</code></pre>
 <p>Instead of plotting the raw sum, we can calculate and plot the mean number of requests per month</p>
 <pre class="r"><code>(df %&gt;% 
   filter(date &gt;= &quot;2016-01-01&quot;, #only select the rows where the date is after 2016-01-01 and before 2018-01-1
@@ -475,16 +474,16 @@ df %&gt;%
 <pre><code>## # A tibble: 24 x 4
 ##    request_type  year month     n
 ##    &lt;chr&gt;        &lt;dbl&gt; &lt;ord&gt; &lt;int&gt;
-##  1 Potholes     2016. Jan     222
-##  2 Potholes     2016. Feb     594
-##  3 Potholes     2016. Mar     973
-##  4 Potholes     2016. Apr     759
-##  5 Potholes     2016. May     822
-##  6 Potholes     2016. Jun     784
-##  7 Potholes     2016. Jul     604
-##  8 Potholes     2016. Aug     556
-##  9 Potholes     2016. Sep     364
-## 10 Potholes     2016. Oct     318
+##  1 Potholes      2016 Jan     222
+##  2 Potholes      2016 Feb     594
+##  3 Potholes      2016 Mar     973
+##  4 Potholes      2016 Apr     759
+##  5 Potholes      2016 May     822
+##  6 Potholes      2016 Jun     784
+##  7 Potholes      2016 Jul     604
+##  8 Potholes      2016 Aug     556
+##  9 Potholes      2016 Sep     364
+## 10 Potholes      2016 Oct     318
 ## # ... with 14 more rows</code></pre>
 <pre class="r"><code>df_filtered %&gt;% 
   group_by(month) %&gt;% 
@@ -542,16 +541,16 @@ df %&gt;%
 <pre><code>## # A tibble: 983 x 3
 ##     year  yday     n
 ##    &lt;dbl&gt; &lt;dbl&gt; &lt;int&gt;
-##  1 2015.  110.   119
-##  2 2015.  111.   101
-##  3 2015.  112.   109
-##  4 2015.  113.   102
-##  5 2015.  114.    84
-##  6 2015.  117.    85
-##  7 2015.  118.   101
-##  8 2015.  119.   107
-##  9 2015.  120.    83
-## 10 2015.  121.    66
+##  1  2015   110   119
+##  2  2015   111   101
+##  3  2015   112   109
+##  4  2015   113   102
+##  5  2015   114    84
+##  6  2015   117    85
+##  7  2015   118   101
+##  8  2015   119   107
+##  9  2015   120    83
+## 10  2015   121    66
 ## # ... with 973 more rows</code></pre>
 <pre class="r"><code>df_day_of_year %&gt;% 
   ggplot(aes(yday, n, group = year)) + #color the lines by year. as.factor() turns the year column from integer to factor, which has an inherent order
@@ -589,16 +588,16 @@ df %&gt;%
 ## # Groups:   year [4]
 ##     year  yday     n cumsum
 ##    &lt;dbl&gt; &lt;dbl&gt; &lt;int&gt;  &lt;int&gt;
-##  1 2015.  110.   119    119
-##  2 2015.  111.   101    220
-##  3 2015.  112.   109    329
-##  4 2015.  113.   102    431
-##  5 2015.  114.    84    515
-##  6 2015.  117.    85    600
-##  7 2015.  118.   101    701
-##  8 2015.  119.   107    808
-##  9 2015.  120.    83    891
-## 10 2015.  121.    66    957
+##  1  2015   110   119    119
+##  2  2015   111   101    220
+##  3  2015   112   109    329
+##  4  2015   113   102    431
+##  5  2015   114    84    515
+##  6  2015   117    85    600
+##  7  2015   118   101    701
+##  8  2015   119   107    808
+##  9  2015   120    83    891
+## 10  2015   121    66    957
 ## # ... with 973 more rows</code></pre>
 <pre class="r"><code>df_cumulative_sum %&gt;% 
   ggplot(aes(yday, cumsum, color = as.factor(year))) +

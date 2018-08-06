@@ -1,4 +1,5 @@
 ---
+draft: yes
 title: "Mapping Healthy Ride Data"
 author: "Conor Tompkins"
 date: '2017-11-12'
@@ -13,6 +14,7 @@ categories:
 - R
 ---
 
+<script src="/rmarkdown-libs/kePrint/kePrint.js"></script>
 
 
 <p>This post is about mapping the Healthy Ride dataset in R.</p>
@@ -58,7 +60,6 @@ data_long &lt;- data %&gt;%
          date, 
          year,
          month,
-         time, 
          hour,
          wday,
          yday,
@@ -68,7 +69,8 @@ data_long &lt;- data %&gt;%
          station_id, 
          station_name_type,
          station_name,
-         everything())
+         everything(),
+         -time)
 
 data_long[1:10, 1:5] %&gt;% 
   kable(&quot;html&quot;) %&gt;% 
