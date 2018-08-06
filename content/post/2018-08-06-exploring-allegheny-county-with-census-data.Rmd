@@ -1,0 +1,13 @@
+---
+title: Exploring Allegheny County with census data
+author: Conor Tompkins
+date: '2018-08-06'
+slug: exploring-allegheny-county-with-census-data
+categories:
+  - Pittsburgh
+  - R
+tags:
+  - Pennsylvania
+  - Allegheny County
+  - census
+---
