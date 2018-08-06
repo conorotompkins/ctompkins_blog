@@ -142,7 +142,7 @@ tax
                   title = &quot;@SenBobCasey tweets&quot;,
                   subtitle = &quot;Bigram network&quot;,
                   caption = &quot;@conor_tompkins&quot;)</code></pre>
-<p><img src="/post/2018-03-12-comparing-u-s-senators-casey-and-toomey_files/figure-html/visualize_casey_bigrams-1.png" width="1152" /> Takeaway: Senator Casey focused on the tax cut and ACA repeal bills.</p>
+<p><img src="2018-03-12-comparing-u-s-senators-casey-and-toomey_files/figure-html/visualize_casey_bigrams-1.png" width="1152" /> Takeaway: Senator Casey focused on the tax cut and ACA repeal bills.</p>
 <p>This code extracts the bigrams from Senator Toomey’s tweets:</p>
 <pre class="r"><code>toomey_stopwords &lt;- c(&quot;0085&quot;, &quot;009f&quot;, &quot;f0&quot;, &quot;00a6&quot;)
 tweets_toomey &lt;- count_twitter_bigrams(df_toomey, custom_stopwords = toomey_stopwords)
@@ -240,7 +240,7 @@ delivery
                   title = &quot;@SenToomey tweets&quot;,
                   subtitle = &quot;Bigram network&quot;,
                   caption = &quot;@conor_tompkins&quot;)</code></pre>
-<p><img src="/post/2018-03-12-comparing-u-s-senators-casey-and-toomey_files/figure-html/visualize_toomey_bigrams-1.png" width="1152" /> Takeaway: Senator Toomey’s bigrams reflect that he uses Twitter to issue weekly updates and notify constituents about his newsletter.</p>
+<p><img src="2018-03-12-comparing-u-s-senators-casey-and-toomey_files/figure-html/visualize_toomey_bigrams-1.png" width="1152" /> Takeaway: Senator Toomey’s bigrams reflect that he uses Twitter to issue weekly updates and notify constituents about his newsletter.</p>
 </div>
 <div id="word-correlation" class="section level2">
 <h2>Word correlation</h2>
@@ -252,7 +252,7 @@ visualize_word_correlations(casey_words,
                             title = &quot;@SenBobCasey tweets&quot;,
                             subtitle = &quot;Word correlation&quot;,
                             caption = &quot;@conor_tompkins&quot;)</code></pre>
-<p><img src="/post/2018-03-12-comparing-u-s-senators-casey-and-toomey_files/figure-html/word_correlation_casey-1.png" width="1248" /> Takeaway: The two main clusters in this graph show that Senator Casey used a consistent vocabulary to discuss the tax cut bill and the effort to repeal the ACA.</p>
+<p><img src="2018-03-12-comparing-u-s-senators-casey-and-toomey_files/figure-html/word_correlation_casey-1.png" width="1248" /> Takeaway: The two main clusters in this graph show that Senator Casey used a consistent vocabulary to discuss the tax cut bill and the effort to repeal the ACA.</p>
 <p>This code calculates and plots the correlations for Senator Toomey’s tweets:</p>
 <pre class="r"><code>toomey_words &lt;- word_correlations(df_toomey, minimum = 75, casey_stopwords)
 visualize_word_correlations(toomey_words, 
@@ -260,7 +260,7 @@ visualize_word_correlations(toomey_words,
                             title = &quot;@SenToomey tweets&quot;,
                             subtitle = &quot;Word correlation&quot;,
                             caption = &quot;@conor_tompkins&quot;)</code></pre>
-<p><img src="/post/2018-03-12-comparing-u-s-senators-casey-and-toomey_files/figure-html/word_correlation_toomey-1.png" width="1248" /> Takeaway: This plot shows that Senator Toomey used a consistent vocabulary to discuss his main policy goal, the tax cut bill.</p>
+<p><img src="2018-03-12-comparing-u-s-senators-casey-and-toomey_files/figure-html/word_correlation_toomey-1.png" width="1248" /> Takeaway: This plot shows that Senator Toomey used a consistent vocabulary to discuss his main policy goal, the tax cut bill.</p>
 </div>
 <div id="word-frequency-comparison" class="section level2">
 <h2>Word frequency comparison</h2>
@@ -563,7 +563,7 @@ bill
        x = &quot;Used more by @SenBobCasey&quot;,
        y = &quot;Used more by @SenToomey&quot;,
        caption = caption)</code></pre>
-<p><img src="/post/2018-03-12-comparing-u-s-senators-casey-and-toomey_files/figure-html/plot_word_frequency-1.png" width="864" /> Takeaway: Senator Toomey was more likely to use words like “economy”, “safety”, “reform”, and “prayers”. Senator Casey was more likely to use words like “deficit”, “premiums”, “medicaid”, “disabilities”, “credits”, and “corportations”.</p>
+<p><img src="2018-03-12-comparing-u-s-senators-casey-and-toomey_files/figure-html/plot_word_frequency-1.png" width="864" /> Takeaway: Senator Toomey was more likely to use words like “economy”, “safety”, “reform”, and “prayers”. Senator Casey was more likely to use words like “deficit”, “premiums”, “medicaid”, “disabilities”, “credits”, and “corportations”.</p>
 </div>
 <div id="word-ratios" class="section level2">
 <h2>Word ratios</h2>
@@ -704,6 +704,6 @@ rich
                     breaks = c(FALSE, TRUE), 
                     labels = c(&quot;@SenBobCasey&quot;, &quot;@SenToomey&quot;)) +
   theme(panel.grid.major.y = element_blank())</code></pre>
-<p><img src="/post/2018-03-12-comparing-u-s-senators-casey-and-toomey_files/figure-html/plot_ratios-1.png" width="672" /></p>
+<p><img src="2018-03-12-comparing-u-s-senators-casey-and-toomey_files/figure-html/plot_ratios-1.png" width="672" /></p>
 <p>Takeaway: This plot shows the stark divide between how each senator views some of the major policy issues. Senator Casey directly criticized the problems he saw during the tax cut and ACA fight (“trumpcare”, “scheme”, “lose”, “giveaways”, and “#noagetax”). Senator Toomey referenced “#philly” and “#obamacare” much more, and framed the tax cut bill as “#taxreform”.</p>
 </div>
