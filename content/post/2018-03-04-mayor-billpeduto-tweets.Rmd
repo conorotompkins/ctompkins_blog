@@ -15,8 +15,7 @@ tags:
 
 Before getting started, we need to load the packages required for this analysis:
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(cache=TRUE,
-                      message = FALSE,
+knitr::opts_chunk$set(message = FALSE,
                       warning = FALSE,
                       paged.print = FALSE)
 
